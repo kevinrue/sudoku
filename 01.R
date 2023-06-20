@@ -15,8 +15,10 @@ add_value_xy <- function(grid, .row, .column, value) {
 }
 
 plot_grid <- function(grid) {
-  ggplot(sudoku_grid, aes(column, 10-row)) +
+  tile_centers <- expand.grid(row = 2 + 0:2*3, column = 2 + 0:2*3)
+  ggplot(grid, aes(column, 10-row)) +
     geom_tile(fill = "white", color = "black", width = 1, height = 1) +
+    geom_tile(aes(10-row, column), tile_centers, fill = NA, color = "black", width = 3, height = 3, linewidth = 2) +
     geom_text(aes(label = value)) +
     theme_void()
 }
@@ -48,11 +50,19 @@ sudoku_grid <- add_value_xy(sudoku_grid, 9, 6, 6)
 sudoku_grid <- add_value_xy(sudoku_grid, 9, 9, 3)
 plot_grid(sudoku_grid)
 
+get_tile_index <- function(index) {
+  (index-1) %/% 3 + 1
+}
+
+get_tile_indices <- function(index) {
+  1:3 + (index-1)*3
+}
+
 get_tile_values <- function(grid, .row, .column) {
-  tile_row <- (.row-1) %/% 3 + 1
-  tile_column <- (.column-1) %/% 3 + 1
-  get_rows <- 1:3 + (tile_row-1)*3
-  get_columns <- 1:3 + (tile_column-1)*3
+  row_tile <- get_tile_index(.row)
+  column_tile <- get_tile_index(.column)
+  get_rows <- get_tile_indices(row_tile)
+  get_columns <- get_tile_indices(column_tile)
   grid %>% 
     filter(row %in% get_rows & column %in% get_columns & !is.na(value)) %>% 
     pull(value)
@@ -82,11 +92,32 @@ get_cell_choices(sudoku_grid, 3, 8)
 get_cell_choices(sudoku_grid, 6, 8)
 get_cell_choices(sudoku_grid, 8, 7)
 
+only_cell_for_value <- function(grid, value, .row, .column) {
+  row_tile <- get_tile_index(.row)
+  column_tile <- get_tile_index(.column)
+  get_rows <- setdiff(get_tile_indices(row_tile), .row)
+  get_columns <- setdiff(get_tile_indices(column_tile), .column)
+  values_used <- grid %>% 
+    filter((row %in% get_rows | column %in% get_columns) & !is.na(value)) %>% 
+    pull(value)
+  value %in% values_used
+}
+only_cell_for_value(sudoku_grid, 1, 3, 8)
+
 for (row in 1:9) {
   for (column in 1:9) {
+    if (!is.na(sudoku_grid[sudoku_grid$row == row & sudoku_grid$column == column, "value"])) {
+      next
+    }
     choices <- get_cell_choices(sudoku_grid, row, column)
+    only_cell <- vapply(choices, only_cell_for_value, logical(1), grid = sudoku_grid, .row = row, .column = column)
     if (length(choices) == 1) {
+      message("== choices ==")
       message("row: ", row, ", column: ", column, ", value: ", choices)
+    }
+    if (any(only_cell)) {
+      message("== only_cell ==")
+      message("row: ", row, ", column: ", column, ", value: ", choices[only_cell])  
     }
   }
 }
