@@ -100,13 +100,13 @@ only_cell_for_value <- function(grid, .value, .row, .column) {
   only_row <- grid %>%
       filter(row %in% get_rows & !is.na(value)) %>% 
       group_by(row) %>% 
-      summarise(test = any(value == .value)) %>% 
+      summarise(test = any(value == .value, na.rm = TRUE) | any(column == .column & !is.na(value))) %>% 
       pull() %>% 
       all()
   only_column <- grid %>%
       filter(column %in% get_columns) %>% 
       group_by(column) %>% 
-      summarise(test = any(value == .value) | any(row == .row & !is.na(value))) %>% 
+      summarise(test = any(value == .value, na.rm = TRUE) | any(row == .row & !is.na(value))) %>% 
       pull() %>% 
       all()
   all(only_row, only_column)
@@ -134,7 +134,7 @@ while(any(is.na(sudoku_grid$value)) & iteration < next_iteration) {
         next
       }
       only_cell <- vapply(choices, only_cell_for_value, logical(1), grid = sudoku_grid, .row = row, .column = column)
-      if (any(only_cell)) {
+      if (sum(only_cell) == 1) {
         value <- choices[only_cell]
         message("== only_cell ==")
         message("row: ", row, ", column: ", column, ", value: ", value)
