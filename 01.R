@@ -114,6 +114,7 @@ only_cell_for_value <- function(grid, .value, .row, .column) {
 only_cell_for_value(sudoku_grid, 1, 3, 8)
 
 iteration <- 0
+next_iteration <- 1
 while(any(is.na(sudoku_grid$value)) & iteration < next_iteration) {
   iteration <- next_iteration
   message("iteration: ", iteration)
@@ -145,3 +146,4 @@ while(any(is.na(sudoku_grid$value)) & iteration < next_iteration) {
     }
   }
 }
+plot_grid(sudoku_grid)
