@@ -104,31 +104,44 @@ only_cell_for_value <- function(grid, .value, .row, .column) {
       pull() %>% 
       all()
   only_column <- grid %>%
-      filter(column %in% get_columns & !is.na(value)) %>% 
+      filter(column %in% get_columns) %>% 
       group_by(column) %>% 
-      summarise(test = any(value == .value)) %>% 
+      summarise(test = any(value == .value) | any(row == .row & !is.na(value))) %>% 
       pull() %>% 
       all()
   all(only_row, only_column)
 }
 only_cell_for_value(sudoku_grid, 1, 3, 8)
 
-for (row in 1:9) {
-  for (column in 1:9) {
-    if (!is.na(sudoku_grid[sudoku_grid$row == row & sudoku_grid$column == column, "value"])) {
-      next
-    }
-    choices <- get_cell_choices(sudoku_grid, row, column)
-    print(choices)
-    only_cell <- vapply(choices, only_cell_for_value, logical(1), grid = sudoku_grid, .row = row, .column = column)
-    print(only_cell)
-    if (length(choices) == 1) {
-      message("== choices ==")
-      message("row: ", row, ", column: ", column, ", value: ", choices)
-    }
-    if (any(only_cell)) {
-      message("== only_cell ==")
-      message("row: ", row, ", column: ", column, ", value: ", choices[only_cell])  
+iteration <- 0
+while(any(is.na(sudoku_grid$value)) & iteration < next_iteration) {
+  iteration <- next_iteration
+  message("iteration: ", iteration)
+  for (row in 1:9) {
+    for (column in 1:9) {
+      if (!is.na(sudoku_grid[sudoku_grid$row == row & sudoku_grid$column == column, "value"])) {
+        next
+      }
+      choices <- get_cell_choices(sudoku_grid, row, column)
+      if (length(choices) == 1) {
+        value <- choices
+        # message("== choices ==")
+        # message("row: ", row, ", column: ", column, ", value: ", value)
+        sudoku_grid <- add_value_xy(sudoku_grid, row, column, value)
+        next_iteration <- iteration + 1
+        plot_grid(sudoku_grid)
+        next
+      }
+      only_cell <- vapply(choices, only_cell_for_value, logical(1), grid = sudoku_grid, .row = row, .column = column)
+      if (any(only_cell)) {
+        value <- choices[only_cell]
+        message("== only_cell ==")
+        message("row: ", row, ", column: ", column, ", value: ", value)
+        sudoku_grid <- add_value_xy(sudoku_grid, row, column, value)
+        next_iteration <- iteration + 1
+        plot_grid(sudoku_grid)
+        next
+      }
     }
   }
 }
