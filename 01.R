@@ -100,13 +100,13 @@ only_cell_for_value <- function(grid, .value, .row, .column) {
   only_row <- grid %>%
       filter(row %in% get_rows & !is.na(value)) %>% 
       group_by(row) %>% 
-      summarise(test = any(value == .value, na.rm = TRUE) | any(column == .column & !is.na(value))) %>% 
+      summarise(test = any(value == .value | (column == .column & !is.na(value)), na.rm = TRUE)) %>% 
       pull() %>% 
       all()
   only_column <- grid %>%
       filter(column %in% get_columns) %>% 
       group_by(column) %>% 
-      summarise(test = any(value == .value, na.rm = TRUE) | any(row == .row & !is.na(value))) %>% 
+      summarise(test = any(value == .value | (row == .row & !is.na(value)), na.rm = TRUE)) %>% 
       pull() %>% 
       all()
   all(only_row, only_column)
