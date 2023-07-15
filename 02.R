@@ -152,6 +152,8 @@ test_choices_xy <- function(.grid, .choices, .row, .column) {
   tile_row_indices <- get_tile_indices(tile_row_index)
   tile_column_indices <- get_tile_indices(tile_column_index)
   tile_cells <- as_tibble(expand.grid(row = tile_row_indices, column = tile_column_indices)) %>% 
+    bind_rows(as_tibble(row = .row, column == setdiff(1:9, .column))) %>% 
+    bind_rows(as_tibble(row = setdiff(1:9, .row), column == .column)) %>% 
     arrange(row, column)
   other_cell_choices <- tile_cells %>% 
     filter(!(row == .row & column ==.column)) %>% 
