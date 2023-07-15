@@ -33,13 +33,15 @@ update_choices_xy <- function(.grid, .row, .column, choices) {
 }
 
 plot_grid <- function(.grid) {
+  .grid <- .grid %>% 
+    mutate(given = factor(given, c(TRUE, FALSE)))
   tile_centers <- expand.grid(row = 2 + 0:2*3, column = 2 + 0:2*3)
   ggplot(.grid, aes(column, 10-row)) +
     geom_tile(fill = "white", color = "black", width = 1, height = 1) +
     geom_tile(aes(10-row, column), tile_centers, fill = NA, color = "black", width = 3, height = 3, linewidth = 2) +
     geom_text(aes(label = value, color = given)) +
     theme_void() +
-    scale_color_manual(values = c("FALSE" = "cornflowerblue", "TRUE" = "black"))
+    scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
 }
 plot_grid(sudoku_grid)
 
@@ -161,6 +163,8 @@ test_choices_xy(sudoku_grid, sudoku_choices, 3, 8)
 
 firstpass <- TRUE
 continue <- TRUE
+prompt <- FALSE
+n_filled <- sum(!is.na(sudoku_grid$value))
 while(any(is.na(sudoku_grid$value)) & continue) {
   for (row in 1:9) {
     if (!continue) break
@@ -178,7 +182,11 @@ while(any(is.na(sudoku_grid$value)) & continue) {
         message("== only_choice ==")
         message("row: ", row, ", column: ", column, ", only_choice: ", only_choice)
         if (length(only_choice) == 1) {
-          continue <- prompt_next()
+          if (prompt) {
+            continue <- prompt_next()
+          } else {
+            continue <- TRUE
+          }
           if (continue) {
             sudoku_grid <- add_value_xy(sudoku_grid, row, column, only_choice, given = FALSE)
             print(plot_grid(sudoku_grid))
@@ -189,5 +197,10 @@ while(any(is.na(sudoku_grid$value)) & continue) {
     }
   }
   firstpass <- FALSE
+  new_n_filled <- sum(!is.na(sudoku_grid$value))
+  if (identical(new_n_filled, n_filled)) {
+    message("No progress in last round. No point trying again.")
+    break
+  }
 }
 plot_grid(sudoku_grid)
