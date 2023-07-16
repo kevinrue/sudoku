@@ -57,6 +57,7 @@ plot_choices_value <- function(.choices, .value) {
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
 }
 plot_choices_value(sudoku_choices, 1)
+plot_choices_value(sudoku_choices, 4)
 
 sudoku_grid <- initiate_empty_grid()
 sudoku_grid <- add_value_xy(sudoku_grid, 1, 1, 2, given=TRUE)
@@ -156,6 +157,38 @@ only_cell_in_tile <- function(.choices, .value, .row, .column) {
     cells_in_tile$column == .column
 }
 only_cell_in_tile(sudoku_choices, 1, 3, 8)
+only_cell_in_tile(sudoku_choices, 4, 4, 4)
+
+only_cell_in_line <- function(.choices, .value, .row, .column, .axis) {
+  row <- .row
+  column <- .column
+  .choices %>% 
+    filter(.data[[{{.axis}}]] == get({{parse(text = paste0(".", .axis))}}) & value == .value)
+  # %>% 
+  #   group_by(row) %>% 
+  #   summarise(
+  #     n = n()
+  #   )
+}
+only_cell_in_line(sudoku_choices, 4, 4, 4, "column")
+
+only_cell_in_column <- function(.choices, .value, .row, .column) {
+  cells_in_column <- .choices %>% 
+    filter(column == .column & value == .value)
+  identical(nrow(cells_in_column), 1L) &&
+    cells_in_column$row == .row &&
+    cells_in_column$column == .column
+}
+only_cell_in_column(sudoku_choices, 4, 4, 4)
+
+only_cell_in_row <- function(.choices, .value, .row, .column) {
+  cells_in_row <- .choices %>% 
+    filter(row == .row & value == .value)
+  identical(nrow(cells_in_row), 1L) &&
+    cells_in_row$row == .row &&
+    cells_in_row$column == .column
+}
+only_cell_in_row(sudoku_choices, 2, 5, 3)
 
 prompt_next <- function() {
   x <- readline(prompt="Go next? ")
@@ -209,7 +242,7 @@ update_choices_all <- function(sudoku_choices, sudoku_grid) {
 
 firstpass <- TRUE
 continue <- TRUE
-prompt <- TRUE
+prompt <- T
 n_filled <- sum(!is.na(sudoku_grid$value))
 while(any(is.na(sudoku_grid$value)) & continue) {
   if (firstpass) {
@@ -225,6 +258,7 @@ while(any(is.na(sudoku_grid$value)) & continue) {
       if (!is.na(sudoku_grid[sudoku_grid$row == row & sudoku_grid$column == column, "value"])) {
         next
       }
+      # eliminate choices from 1:9
       only_choice <- test_choices_xy(sudoku_grid, sudoku_choices, row, column)
       message("== only_choice ==")
       message("row: ", row, ", column: ", column, ", only_choice: ", only_choice)
@@ -242,8 +276,47 @@ while(any(is.na(sudoku_grid$value)) & continue) {
           next
         }
       }
+      # only cell in tile for this value?
       cell_choices <- get_cell_choices(sudoku_choices, row, column)
       only_cell <- vapply(cell_choices, only_cell_in_tile, logical(1), .choices = sudoku_choices, .row = row, .column = column)
+      value <- cell_choices[only_cell]
+      message("== only cell ==")
+      message("row: ", row, ", column: ", column, ", value: ", value)
+      if (sum(only_cell) == 1) {
+        if (prompt) {
+          continue <- prompt_next()
+        } else {
+          continue <- TRUE
+        }
+        if (continue) {
+          sudoku_grid <- add_value_xy(sudoku_grid, row, column, value, given = FALSE)
+          print(plot_grid(sudoku_grid))
+          Sys.sleep(0.5)
+          sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid)
+          next
+        }
+      }
+      # only cell in column for value?
+      only_cell <- vapply(cell_choices, only_cell_in_column, logical(1), .choices = sudoku_choices, .row = row, .column = column)
+      value <- cell_choices[only_cell]
+      message("== only cell ==")
+      message("row: ", row, ", column: ", column, ", value: ", value)
+      if (sum(only_cell) == 1) {
+        if (prompt) {
+          continue <- prompt_next()
+        } else {
+          continue <- TRUE
+        }
+        if (continue) {
+          sudoku_grid <- add_value_xy(sudoku_grid, row, column, value, given = FALSE)
+          print(plot_grid(sudoku_grid))
+          Sys.sleep(0.5)
+          sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid)
+          next
+        }
+      }
+      # only cell in row for value?
+      only_cell <- vapply(cell_choices, only_cell_in_row, logical(1), .choices = sudoku_choices, .row = row, .column = column)
       value <- cell_choices[only_cell]
       message("== only cell ==")
       message("row: ", row, ", column: ", column, ", value: ", value)
