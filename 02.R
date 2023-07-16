@@ -62,14 +62,35 @@ plot_choices_value(sudoku_choices, 4)
 plot_choices <- function(.choices) {
   tile_centers <- expand.grid(row = 2 + 0:2*3, column = 2 + 0:2*3)
   .choices %>% 
+    group_by(row, column) %>% 
+    summarise(value = strwrap_choices(value)) %>% 
     ggplot(aes(column, 10-row)) +
     geom_tile(fill = "white", color = "black", width = 1, height = 1) +
     geom_tile(aes(10-row, column), tile_centers, fill = NA, color = "black", width = 3, height = 3, linewidth = 2) +
-    geom_text(aes(label = value, group = interaction(row, column)), position = position_jitter(width = 1/3, height = 1/3, seed = 1)) +
+    geom_text(aes(label = value)) +
     theme_void() +
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
 }
 plot_choices(sudoku_choices)
+
+strwrap_choices <- function(x) {
+  x <- str_flatten(x)
+  lapply(
+    split(
+      str_split(x, "")[[1]],
+      head(rep(1:3, each = 3), str_length(x))
+    ),
+    str_flatten
+  ) %>% str_flatten(collapse = "\n")
+}
+strwrap_choices("123456789")
+strwrap_choices("12345")
+strwrap_choices("12")
+
+sudoku_choices %>% 
+  group_by(row, column) %>% 
+  summarise(value = strwrap_choices(value))
+
 
 sudoku_grid <- initiate_empty_grid()
 sudoku_grid <- add_value_xy(sudoku_grid, 1, 1, 2, given=TRUE)
