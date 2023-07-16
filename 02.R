@@ -59,6 +59,18 @@ plot_choices_value <- function(.choices, .value) {
 plot_choices_value(sudoku_choices, 1)
 plot_choices_value(sudoku_choices, 4)
 
+plot_choices <- function(.choices) {
+  tile_centers <- expand.grid(row = 2 + 0:2*3, column = 2 + 0:2*3)
+  .choices %>% 
+    ggplot(aes(column, 10-row)) +
+    geom_tile(fill = "white", color = "black", width = 1, height = 1) +
+    geom_tile(aes(10-row, column), tile_centers, fill = NA, color = "black", width = 3, height = 3, linewidth = 2) +
+    geom_text(aes(label = value, group = interaction(row, column)), position = position_jitter(width = 1/3, height = 1/3, seed = 1)) +
+    theme_void() +
+    scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
+}
+plot_choices(sudoku_choices)
+
 sudoku_grid <- initiate_empty_grid()
 sudoku_grid <- add_value_xy(sudoku_grid, 1, 1, 2, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 1, 4, 1, given=TRUE)
@@ -159,18 +171,18 @@ only_cell_in_tile <- function(.choices, .value, .row, .column) {
 only_cell_in_tile(sudoku_choices, 1, 3, 8)
 only_cell_in_tile(sudoku_choices, 4, 4, 4)
 
-only_cell_in_line <- function(.choices, .value, .row, .column, .axis) {
-  row <- .row
-  column <- .column
-  .choices %>% 
-    filter(.data[[{{.axis}}]] == get({{parse(text = paste0(".", .axis))}}) & value == .value)
-  # %>% 
-  #   group_by(row) %>% 
-  #   summarise(
-  #     n = n()
-  #   )
-}
-only_cell_in_line(sudoku_choices, 4, 4, 4, "column")
+# only_cell_in_line <- function(.choices, .value, .row, .column, .axis) {
+#   row <- .row
+#   column <- .column
+#   .choices %>% 
+#     filter(.data[[{{.axis}}]] == get({{parse(text = paste0(".", .axis))}}) & value == .value)
+#   # %>% 
+#   #   group_by(row) %>% 
+#   #   summarise(
+#   #     n = n()
+#   #   )
+# }
+# only_cell_in_line(sudoku_choices, 4, 4, 4, "column")
 
 only_cell_in_column <- function(.choices, .value, .row, .column) {
   cells_in_column <- .choices %>% 
@@ -242,7 +254,7 @@ update_choices_all <- function(sudoku_choices, sudoku_grid) {
 
 firstpass <- TRUE
 continue <- TRUE
-prompt <- T
+prompt <- F
 n_filled <- sum(!is.na(sudoku_grid$value))
 while(any(is.na(sudoku_grid$value)) & continue) {
   if (firstpass) {
@@ -337,9 +349,10 @@ while(any(is.na(sudoku_grid$value)) & continue) {
     }
   }
   new_n_filled <- sum(!is.na(sudoku_grid$value))
-  if (continue & identical(new_n_filled, n_filled)) {
+  if (continue && identical(new_n_filled, n_filled)) {
     message("No progress in last round. No point trying again.")
     break
   }
+  n_filled <- new_n_filled
 }
 plot_grid(sudoku_grid)
