@@ -145,7 +145,7 @@ exclude_choice_required_elsewhere_in_tile <- function(.value, .choices, .row, .c
 }
 exclude_choice_required_elsewhere_in_tile(8, sudoku_choices, 1, 2)
 
-compute_cell_choices <- function(.grid, .choices, .row, .column) {
+compute_cell_choices <- function(.grid, .choices, .row, .column, firstpass) {
   grid_value <- .grid %>% 
     filter(row == .row & column == .column) %>% 
     pull(value)
@@ -168,17 +168,20 @@ compute_cell_choices <- function(.grid, .choices, .row, .column) {
   tile_values_used <- get_tile_values(.grid, .row, .column)
   choices <- setdiff(choices, tile_values_used)
   
-  exclude <- vapply(choices, exclude_choice_required_elsewhere_in_tile, FUN.VALUE = logical(1), .choices = .choices, .row = .row, .column = .column)
-  choices <- choices[!exclude]
+  if (!firstpass) {
+    exclude <- vapply(choices, exclude_choice_required_elsewhere_in_tile, FUN.VALUE = logical(1), .choices = .choices, .row = .row, .column = .column)
+    choices <- choices[!exclude]
+  }
   
   choices
 }
-compute_cell_choices(sudoku_grid, sudoku_choices, 1, 3)
-compute_cell_choices(sudoku_grid, sudoku_choices, 2, 4)
-compute_cell_choices(sudoku_grid, sudoku_choices, 3, 8)
-compute_cell_choices(sudoku_grid, sudoku_choices, 6, 8)
-compute_cell_choices(sudoku_grid, sudoku_choices, 8, 7)
-compute_cell_choices(sudoku_grid, sudoku_choices, 1, 2)
+compute_cell_choices(sudoku_grid, sudoku_choices, 1, 3, TRUE)
+compute_cell_choices(sudoku_grid, sudoku_choices, 2, 4, TRUE)
+compute_cell_choices(sudoku_grid, sudoku_choices, 3, 8, TRUE)
+compute_cell_choices(sudoku_grid, sudoku_choices, 6, 8, TRUE)
+compute_cell_choices(sudoku_grid, sudoku_choices, 8, 7, TRUE)
+compute_cell_choices(sudoku_grid, sudoku_choices, 1, 2, TRUE)
+compute_cell_choices(sudoku_grid, sudoku_choices, 3, 5, TRUE)
 
 update_choices_xy <- function(.grid, .row, .column, choices) {
   if (length(choices) == 0) {
@@ -190,7 +193,7 @@ update_choices_xy <- function(.grid, .row, .column, choices) {
     arrange(row, column)
 }
 
-update_choices_all <- function(sudoku_choices, sudoku_grid) {
+update_choices_all <- function(sudoku_choices, sudoku_grid, firstpass) {
   for (.row in 1:9) {
     for (.column in 1:9) {
       sudoku_grid_value <- sudoku_grid %>% 
@@ -199,7 +202,7 @@ update_choices_all <- function(sudoku_choices, sudoku_grid) {
       if (!is.na(sudoku_grid_value)) {
         sudoku_choices <- update_choices_xy(sudoku_choices, .row, .column, sudoku_grid_value)
       } else {
-        choices <- compute_cell_choices(sudoku_grid, sudoku_choices, .row, .column)
+        choices <- compute_cell_choices(sudoku_grid, sudoku_choices, .row, .column, firstpass)
         sudoku_choices <- update_choices_xy(sudoku_choices, .row, .column, choices)
       }
     }
@@ -207,7 +210,7 @@ update_choices_all <- function(sudoku_choices, sudoku_grid) {
   sudoku_choices %>% 
     arrange(row, column)
 }
-sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid)
+sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid, TRUE)
 
 plot_grid <- function(.grid) {
   .grid <- .grid %>% 
@@ -353,11 +356,11 @@ test_choices_xy(sudoku_grid, sudoku_choices, 1, 2)
 print(plot_grid(sudoku_grid))
 firstpass <- TRUE
 continue <- TRUE
-prompt <- T
+prompt <- F
 n_filled <- sum(!is.na(sudoku_grid$value))
 while(any(is.na(sudoku_grid$value)) & continue) {
   if (firstpass) {
-    sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid)
+    sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid, firstpass)
     firstpass <- FALSE
   }
   for (row in 1:9) {
@@ -383,7 +386,7 @@ while(any(is.na(sudoku_grid$value)) & continue) {
           sudoku_grid <- add_value_xy(sudoku_grid, row, column, only_choice, given = FALSE)
           print(plot_grid(sudoku_grid))
           Sys.sleep(0.5)
-          sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid)
+          sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid, firstpass)
           next
         } else {
           break
@@ -405,7 +408,7 @@ while(any(is.na(sudoku_grid$value)) & continue) {
           sudoku_grid <- add_value_xy(sudoku_grid, row, column, value, given = FALSE)
           print(plot_grid(sudoku_grid))
           Sys.sleep(0.5)
-          sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid)
+          sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid, firstpass)
           next
         } else {
           break
@@ -426,7 +429,7 @@ while(any(is.na(sudoku_grid$value)) & continue) {
           sudoku_grid <- add_value_xy(sudoku_grid, row, column, value, given = FALSE)
           print(plot_grid(sudoku_grid))
           Sys.sleep(0.5)
-          sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid)
+          sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid, firstpass)
           next
         } else {
           break
@@ -447,7 +450,7 @@ while(any(is.na(sudoku_grid$value)) & continue) {
           sudoku_grid <- add_value_xy(sudoku_grid, row, column, value, given = FALSE)
           print(plot_grid(sudoku_grid))
           Sys.sleep(0.5)
-          sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid)
+          sudoku_choices <- update_choices_all(sudoku_choices, sudoku_grid, firstpass)
           next
         } else {
           break
