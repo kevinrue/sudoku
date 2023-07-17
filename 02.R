@@ -153,8 +153,8 @@ compute_cell_choices <- function(.grid, .choices, .row, .column) {
   tile_values_used <- get_tile_values(.grid, .row, .column)
   choices <- setdiff(choices, tile_values_used)
   
-  exclude <- vapply(choices, exclude_choice_required_elsewhere, FUN.VALUE = logical(1), .choices = .choices, .row = .row, .column = .column)
-  choices <- choices[!exclude]
+  # exclude <- vapply(choices, exclude_choice_required_elsewhere, FUN.VALUE = logical(1), .choices = .choices, .row = .row, .column = .column)
+  # choices <- choices[!exclude]
   
   choices
 }
@@ -331,9 +331,10 @@ test_choices_xy(sudoku_grid, sudoku_choices, 3, 8)
 
 # Run ----
 
+print(plot_grid(sudoku_grid))
 firstpass <- TRUE
 continue <- TRUE
-prompt <- F
+prompt <- T
 n_filled <- sum(!is.na(sudoku_grid$value))
 while(any(is.na(sudoku_grid$value)) & continue) {
   if (firstpass) {
