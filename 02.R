@@ -352,7 +352,7 @@ test_choices_xy(sudoku_grid, sudoku_choices, 1, 2)
 print(plot_grid(sudoku_grid))
 firstpass <- TRUE
 continue <- TRUE
-prompt <- T
+prompt <- F
 n_filled <- sum(!is.na(sudoku_grid$value))
 while(any(is.na(sudoku_grid$value)) & continue) {
   if (firstpass) {
