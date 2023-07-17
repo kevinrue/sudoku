@@ -67,7 +67,8 @@ get_tile_values <- function(.grid, .row, .column) {
     pull(value)
 }
 
-exclude_choice_required_elsewhere <- function(.value, .choices, .row, .column) {
+exclude_choice_required_elsewhere_in_tile <- function(.value, .choices, .row, .column) {
+  # print("exclude_choice_required_elsewhere_in_tile")
   # look for row/columns where a number cannot appear in 2 out of 3 tiles (on that row)
   # deduct that the choice MUST appear on that row/column in the remaining tile
   # eliminate that choice from the other rows/columns in that remaining tile
@@ -87,6 +88,8 @@ exclude_choice_required_elsewhere <- function(.value, .choices, .row, .column) {
   # only proceed if this is the only cell in this row of this tile possible for this value
   choice_unique_cell_in_tile_row <- .choices %>% 
     filter(value == .value & row == .row & column %in% tile_other_columns)
+  # print("choice_unique_cell_in_tile_row")
+  # print(choice_unique_cell_in_tile_row)
   if (identical(nrow(choice_unique_cell_in_tile_row), 0L)) {
     # which other rows in the tile is this value a choice for?
     choice_other_rows <- .choices %>% 
@@ -94,20 +97,27 @@ exclude_choice_required_elsewhere <- function(.value, .choices, .row, .column) {
       pull(row) %>% 
       unique()
     # exclude the value from this cell if it is required in any other row in that tile
+    # i.e., if it is a choice in the another row of that tile while not being a choice in that row in other tiles
     for (other_row in choice_other_rows) {
-      choices_in_other_row <- .choices %>% 
+      choices_in_other_row_in_tile <- .choices %>% 
+        filter(row %in% other_row & column %in% tile_columns) %>% 
+        pull(value) %>% 
+        unique()
+      choices_in_other_row_in_other_tiles <- .choices %>% 
         filter(row %in% other_row & !column %in% tile_columns) %>% 
         pull(value) %>% 
-        unique() %>% 
-        sort()
-      if (!.value %in% choices_in_other_row) {
-        return(TRUE) # exclude
+        unique()
+      if (.value %in% choices_in_other_row_in_tile && !.value %in% choices_in_other_row_in_other_tiles) {
+        # print("exclude: required in other row in tile")
+        return(TRUE)
       }
     }
   }
   
   choice_unique_cell_in_tile_column <- .choices %>% 
     filter(value == .value & column == .column & row %in% tile_other_rows)
+  # print("choice_unique_cell_in_tile_column")
+  # print(choice_unique_cell_in_tile_column)
   if (identical(nrow(choice_unique_cell_in_tile_column), 0L)) {
     # which other rows in the tile is this value a choice for?
     choice_other_columns <- .choices %>% 
@@ -116,19 +126,23 @@ exclude_choice_required_elsewhere <- function(.value, .choices, .row, .column) {
       unique()
     # exclude the value from this cell if it is required in any other column in that tile
     for (other_column in choice_other_columns) {
-      choices_in_other_column <- .choices %>% 
+      choices_in_other_column_in_tile <- .choices %>% 
+        filter(column %in% other_column & row %in% tile_rows) %>% 
+        pull(value) %>% 
+        unique()
+      choices_in_other_column_in_other_tiles <- .choices %>% 
         filter(column %in% other_column & !row %in% tile_rows) %>% 
         pull(value) %>% 
-        unique() %>% 
-        sort()
-      if (!.value %in% choices_in_other_column) {
+        unique()
+      if (.value %in% choices_in_other_column_in_tile && !.value %in% choices_in_other_column_in_other_tiles) {
+        # print("exclude: required in other column in tile")
         return(TRUE) # exclude
       }
     }
   }
   return(FALSE)
 }
-exclude_choice_required_elsewhere(8, sudoku_choices, 1, 2)
+exclude_choice_required_elsewhere_in_tile(8, sudoku_choices, 1, 2)
 
 compute_cell_choices <- function(.grid, .choices, .row, .column) {
   grid_value <- .grid %>% 
@@ -153,8 +167,8 @@ compute_cell_choices <- function(.grid, .choices, .row, .column) {
   tile_values_used <- get_tile_values(.grid, .row, .column)
   choices <- setdiff(choices, tile_values_used)
   
-  # exclude <- vapply(choices, exclude_choice_required_elsewhere, FUN.VALUE = logical(1), .choices = .choices, .row = .row, .column = .column)
-  # choices <- choices[!exclude]
+  exclude <- vapply(choices, exclude_choice_required_elsewhere_in_tile, FUN.VALUE = logical(1), .choices = .choices, .row = .row, .column = .column)
+  choices <- choices[!exclude]
   
   choices
 }
@@ -307,6 +321,9 @@ test_choices_xy <- function(.grid, .choices, .row, .column) {
   cell_choices <- get_cell_choices(.choices, .row, .column)
   message("== cell_choices ==")
   message("row: ", .row, ", column: ", .column, ", choice: ", cell_choices)
+  if (identical(length(cell_choices), 1L)) {
+    return(cell_choices)
+  }
   # what are the choices for every other cell in the tile?
   tile_row_index <- get_tile_index(.row)
   tile_column_index <- get_tile_index(.column)
@@ -328,6 +345,7 @@ test_choices_xy <- function(.grid, .choices, .row, .column) {
   cell_choices[!cell_choices %in% other_cell_choices]
 }
 test_choices_xy(sudoku_grid, sudoku_choices, 3, 8)
+test_choices_xy(sudoku_grid, sudoku_choices, 1, 2)
 
 # Run ----
 
