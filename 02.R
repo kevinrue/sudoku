@@ -104,7 +104,7 @@ exclude_choice_required_elsewhere_in_tile <- function(.value, .choices, .row, .c
         pull(value) %>% 
         unique()
       choices_in_other_row_in_other_tiles <- .choices %>% 
-        filter(row %in% other_row & !column %in% tile_columns) %>% 
+        filter(row %in% other_row & column %in% other_tiles_columns) %>% 
         pull(value) %>% 
         unique()
       if (.value %in% choices_in_other_row_in_tile && !.value %in% choices_in_other_row_in_other_tiles) {
@@ -114,12 +114,13 @@ exclude_choice_required_elsewhere_in_tile <- function(.value, .choices, .row, .c
     }
   }
   
+  # only proceed if this is the only cell in this column of this tile possible for this value
   choice_unique_cell_in_tile_column <- .choices %>% 
     filter(value == .value & column == .column & row %in% tile_other_rows)
   # print("choice_unique_cell_in_tile_column")
   # print(choice_unique_cell_in_tile_column)
   if (identical(nrow(choice_unique_cell_in_tile_column), 0L)) {
-    # which other rows in the tile is this value a choice for?
+    # which other columns in the tile is this value a choice for?
     choice_other_columns <- .choices %>% 
       filter(value == .value & column %in% tile_other_columns & row %in% tile_rows) %>% 
       pull(column) %>% 
@@ -131,7 +132,7 @@ exclude_choice_required_elsewhere_in_tile <- function(.value, .choices, .row, .c
         pull(value) %>% 
         unique()
       choices_in_other_column_in_other_tiles <- .choices %>% 
-        filter(column %in% other_column & !row %in% tile_rows) %>% 
+        filter(column %in% other_column & row %in% other_tiles_rows) %>% 
         pull(value) %>% 
         unique()
       if (.value %in% choices_in_other_column_in_tile && !.value %in% choices_in_other_column_in_other_tiles) {
@@ -352,7 +353,7 @@ test_choices_xy(sudoku_grid, sudoku_choices, 1, 2)
 print(plot_grid(sudoku_grid))
 firstpass <- TRUE
 continue <- TRUE
-prompt <- F
+prompt <- T
 n_filled <- sum(!is.na(sudoku_grid$value))
 while(any(is.na(sudoku_grid$value)) & continue) {
   if (firstpass) {
