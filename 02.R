@@ -195,19 +195,6 @@ only_cell_in_tile <- function(.choices, .value, .row, .column) {
 only_cell_in_tile(sudoku_choices, 1, 3, 8)
 only_cell_in_tile(sudoku_choices, 4, 4, 4)
 
-# only_cell_in_line <- function(.choices, .value, .row, .column, .axis) {
-#   row <- .row
-#   column <- .column
-#   .choices %>% 
-#     filter(.data[[{{.axis}}]] == get({{parse(text = paste0(".", .axis))}}) & value == .value)
-#   # %>% 
-#   #   group_by(row) %>% 
-#   #   summarise(
-#   #     n = n()
-#   #   )
-# }
-# only_cell_in_line(sudoku_choices, 4, 4, 4, "column")
-
 only_cell_in_column <- function(.choices, .value, .row, .column) {
   cells_in_column <- .choices %>% 
     filter(column == .column & value == .value)
