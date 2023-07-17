@@ -63,11 +63,14 @@ plot_choices <- function(.choices) {
   tile_centers <- expand.grid(row = 2 + 0:2*3, column = 2 + 0:2*3)
   .choices %>% 
     group_by(row, column) %>% 
-    summarise(value = strwrap_choices(value)) %>% 
+    summarise(
+      value = strwrap_choices(value),
+      singleton = str_length(value) == 1
+    ) %>%
     ggplot(aes(column, 10-row)) +
     geom_tile(fill = "white", color = "black", width = 1, height = 1) +
     geom_tile(aes(10-row, column), tile_centers, fill = NA, color = "black", width = 3, height = 3, linewidth = 2) +
-    geom_text(aes(label = value)) +
+    geom_text(aes(label = value, colour = singleton)) +
     theme_void() +
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
 }
