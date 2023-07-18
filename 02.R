@@ -22,6 +22,8 @@ add_value_xy <- function(.grid, .row, .column, value, given=FALSE) {
   .grid
 }
 
+# grid 1 (challenging) ----
+
 sudoku_grid <- initiate_empty_grid()
 sudoku_grid <- add_value_xy(sudoku_grid, 1, 1, 2, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 1, 4, 1, given=TRUE)
@@ -47,7 +49,38 @@ sudoku_grid <- add_value_xy(sudoku_grid, 9, 1, 1, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 9, 5, 7, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 9, 6, 6, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 9, 9, 3, given=TRUE)
-sudoku_grid
+plot_grid(sudoku_grid)
+
+# grid 2 ----
+
+sudoku_grid <- initiate_empty_grid()
+sudoku_grid <- add_value_xy(sudoku_grid, 1, 2, 8, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 1, 3, 6, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 1, 9, 9, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 2, 4, 9, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 2, 7, 1, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 2, 9, 4, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 3, 3, 4, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 3, 6, 2, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 4, 1, 4, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 4, 5, 7, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 4, 6, 5, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 5, 1, 7, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 5, 3, 1, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 5, 7, 4, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 5, 9, 3, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 6, 4, 2, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 6, 5, 3, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 6, 7, 5, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 7, 4, 4, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 7, 7, 7, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 8, 1, 2, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 8, 3, 5, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 8, 6, 8, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 9, 1, 6, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 9, 7, 3, given=TRUE)
+sudoku_grid <- add_value_xy(sudoku_grid, 9, 8, 9, given=TRUE)
+plot_grid(sudoku_grid)
 
 get_tile_index <- function(index) {
   (index-1) %/% 3 + 1
