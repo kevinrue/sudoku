@@ -51,7 +51,7 @@ sudoku_grid <- add_value_xy(sudoku_grid, 9, 6, 6, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 9, 9, 3, given=TRUE)
 plot_grid(sudoku_grid)
 
-# grid 2 ----
+# grid 2 (challenging) ----
 
 sudoku_grid <- initiate_empty_grid()
 sudoku_grid <- add_value_xy(sudoku_grid, 1, 2, 8, given=TRUE)
