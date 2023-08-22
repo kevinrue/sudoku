@@ -2,6 +2,7 @@
 
 export(from_matrix)
 export(replaceCellValues)
+export(simulate_grid)
 export(template_grid_code)
 exportMethods(replaceCellValues)
 importClassesFrom(tibble,tbl_df)

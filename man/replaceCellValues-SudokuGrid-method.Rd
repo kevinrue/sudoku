@@ -45,5 +45,5 @@ m <- matrix(data = c(
 
 sudoku_grid <- from_matrix(m)
 
-replaceCellValues(sudoku_grid, 1, 1, c(1, 2, 3))
+replaceCellValues(sudoku_grid, 1, 2, c(1, 2, 3))
 }
