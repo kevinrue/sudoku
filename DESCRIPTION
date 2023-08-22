@@ -14,8 +14,12 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports:
+  dplyr,
+  magrittr,
   methods,
-  tibble
+  tibble,
+  tidyr,
+  tidyselect
 Suggests:
   covr,
   knitr,

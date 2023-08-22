@@ -5,12 +5,12 @@
 \alias{template_grid_code}
 \title{Create a SudokuGrid Object}
 \usage{
-from_matrix(matrix)
+from_matrix(x)
 
 template_grid_code()
 }
 \arguments{
-\item{matrix}{Numeric matrix.
+\item{x}{Numeric matrix.
 Must be nine rows and nine columns,
 filled with either integer from 1 to 9 or \code{NA}.}
 }
@@ -24,6 +24,8 @@ to initialise a sudoku grid.
 Create a SudokuGrid Object
 }
 \examples{
+template_grid_code()
+
 m <- matrix(data = c(
   2,NA,NA, 1, 9,NA,NA,NA, 4,
   NA, 1,NA,NA, 8,NA,NA,NA,NA,
@@ -35,4 +37,7 @@ m <- matrix(data = c(
   NA,NA,NA,NA, 4,NA,NA, 7,NA,
   1,NA,NA,NA, 7, 6,NA,NA, 3
   ), nrow = 9, ncol = 9, byrow = TRUE)
+
+sudoku_grid <- from_matrix(m)
+sudoku_grid
 }

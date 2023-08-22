@@ -33,3 +33,7 @@ m <- matrix(data = c(
 m
 ```
 
+```{r}
+sudoku_grid <- from_matrix(m)
+sudoku_grid
+```

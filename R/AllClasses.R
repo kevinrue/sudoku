@@ -9,7 +9,5 @@
 #' @examples
 #' new("SudokuGrid")
 setClass("SudokuGrid", 
-  slots=c(
-    contents="tbl_df"
-  )
+  contains = "tbl_df"
 )
