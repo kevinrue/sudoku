@@ -6,12 +6,13 @@
 #'
 #' @return A [SudokuGrid-class] object.
 #' @export
-#' @importFrom dplyr mutate_at pick rename_with
+#' @importFrom dplyr mutate mutate_at pick rename_with
 #' @importFrom methods new
 #' @importFrom tibble as_tibble
 #' @importFrom tidyr pivot_longer
 #' @importFrom tidyselect matches
 #' @importFrom magrittr %>%
+#' @importFrom rlang := .data
 #'
 #' @examples
 #' template_grid_code()

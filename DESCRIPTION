@@ -15,8 +15,10 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports:
   dplyr,
+  ggplot2,
   magrittr,
   methods,
+  rlang,
   tibble,
   tidyr,
   tidyselect

@@ -31,19 +31,8 @@ The updated \linkS4class{SudokuGrid} object.
 Methods for SudokuGrid
 }
 \examples{
-m <- matrix(data = c(
-  2,NA,NA, 1, 9,NA,NA,NA, 4,
-  NA, 1,NA,NA, 8,NA,NA,NA,NA,
-  NA,NA, 5,NA,NA,NA, 3,NA,NA,
-  6,NA,NA,NA,NA, 3,NA,NA,NA,
-  4, 3,NA,NA,NA,NA,NA, 9, 1,
-  NA,NA,NA, 2,NA,NA,NA,NA, 8,
-  NA,NA, 7,NA,NA,NA, 5,NA,NA,
-  NA,NA,NA,NA, 4,NA,NA, 7,NA,
-  1,NA,NA,NA, 7, 6,NA,NA, 3
-  ), nrow = 9, ncol = 9, byrow = TRUE)
-
-sudoku_grid <- from_matrix(m)
+sudoku_grid <- simulate_grid()
+sudoku_grid
 
 replaceCellValues(sudoku_grid, 1, 2, c(1, 2, 3))
 }
