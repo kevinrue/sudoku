@@ -1,4 +1,6 @@
-#' Methods for SudokuGrid
+#' Replace Possible Values in SudokuGrid Cell
+#' 
+#' Replace the set of values possible in a SudokuGrid cell.
 #'
 #' @param object A [SudokuGrid-class] object.
 #' @param i Row index.
@@ -8,29 +10,26 @@
 #' Default to `TRUE` if a `value` has length 1.
 #'
 #' @return The updated [SudokuGrid-class] object.
-#' @export
+#' 
 #' @importFrom dplyr arrange bind_rows filter pick
-#' @importFrom rlang :=
+#' @importFrom rlang := .data
 #' @importFrom tibble tibble
 #' @importFrom tidyselect all_of
-#'
-#' @examples
-#' sudoku_grid <- simulate_grid()
-#' sudoku_grid
 #' 
-#' replaceCellValues(sudoku_grid, 1, 2, c(1, 2, 3))
+#' @rdname INTERNAL_replaceCellValues
 setMethod("replaceCellValues", "SudokuGrid", function(object, i, j, values,
   given=ifelse(identical(length(values), 1L), TRUE, FALSE)
 ){
   added_values <- tibble(
-    "{{ .grid_row_name }}" := i, # TODO: <data-masking>
-    "{{ .grid_column_name }}" := j, # TODO: <data-masking>
-    "{{ .grid_value_name }}" := values, # TODO: <data-masking>
-    "{{ .grid_given_name }}" := given # TODO: <data-masking>
+    grid_row = i, # TODO: <data-masking>
+    grid_column = j, # TODO: <data-masking>
+    grid_value = values, # TODO: <data-masking>
+    given = given # TODO: <data-masking>
   )
+  colnames(added_values) <- c(.grid_row_name, .grid_column_name, .grid_value_name, .grid_given_name)
   object %>% 
     as_tibble() %>% 
-    filter(!(pick(all_of(.grid_row_name)) == i & pick(all_of(.grid_column_name)) == j)) %>% 
+    filter(!(.data[[.grid_row_name]] == i & .data[[.grid_column_name]] == j)) %>% 
     bind_rows(added_values) %>% 
     arrange(pick(all_of(c(.grid_row_name, .grid_column_name))))
 })
