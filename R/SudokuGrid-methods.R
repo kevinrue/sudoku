@@ -67,10 +67,13 @@ plot.SudokuGrid <- function(x, ...) {
 #' @importFrom dplyr filter pull
 #' @importFrom rlang .data
 get_tile_values <- function(x, row_idx, column_idx) {
+  # row
   row_tile <- get_tile_index(row_idx)
-  column_tile <- get_tile_index(column_idx)
   get_rows <- get_tile_indices(row_tile)
+  # column
+  column_tile <- get_tile_index(column_idx)
   get_columns <- get_tile_indices(column_tile)
+  # logic
   x %>% 
     as_tibble() %>% 
     # filter(row %in% get_rows & column %in% get_columns & !is.na(value)) %>% 
@@ -82,22 +85,7 @@ get_tile_values <- function(x, row_idx, column_idx) {
     pull({{ .grid_value_name }})
 }
 
-#' @importFrom dplyr filter pull
-#' @importFrom rlang .data
-get_tile_values <- function(x, row_idx, column_idx) {
-  row_tile <- get_tile_index(row_idx)
-  column_tile <- get_tile_index(column_idx)
-  get_rows <- get_tile_indices(row_tile)
-  get_columns <- get_tile_indices(column_tile)
-  x %>% 
-    as_tibble() %>% 
-    filter(.data[[.grid_row_name]] %in% get_rows &
-        .data[[.grid_column_name]] %in% get_columns &
-        !is.na(.data[[.grid_value_name]])) %>% 
-    pull({{.grid_value_name}})
-}
-
-#' Eliminate Now-Impossible Choices
+#' Eliminate Impossible Choices
 #' 
 #' @param x A [SudokuGrid-class] object.
 #' @param row_idx Index of the row of the cell being tested.
@@ -109,9 +97,11 @@ get_tile_values <- function(x, row_idx, column_idx) {
 #' 
 #' @rdname INTERNAL_eliminate_impossible_choices
 only_cell_in_tile_row_for_value <- function(x, row_idx, column_idx, value) {
+  # column
   column_tile <- get_tile_index(column_idx)
   tile_columns <- get_tile_indices(column_tile)
   tile_other_columns <- setdiff(tile_columns, column_idx)
+  # logic
   x %>% 
     as_tibble() %>% 
     filter(.data[[.grid_value_name]] == value &
@@ -126,9 +116,11 @@ only_cell_in_tile_row_for_value <- function(x, row_idx, column_idx, value) {
 #' 
 #' @rdname INTERNAL_eliminate_impossible_choices
 only_cell_in_tile_column_for_value <- function(x, row_idx, column_idx, value) {
+  # row
   row_tile <- get_tile_index(row_idx)
   tile_rows <- get_tile_indices(row_tile)
   tile_other_rows <- setdiff(tile_rows, row_idx)
+  # logic
   x %>% 
     as_tibble() %>% 
     filter(.data[[.grid_value_name]] == value &
@@ -151,6 +143,7 @@ which_other_tile_rows_for_value <- function(x, row_idx, column_idx, value) {
   # column
   column_tile <- get_tile_index(column_idx)
   tile_columns <- get_tile_indices(column_tile)
+  # logic
   choice_other_rows <- x %>% 
     as_tibble() %>% 
     filter(.data[[.grid_value_name]] == value &
@@ -160,6 +153,14 @@ which_other_tile_rows_for_value <- function(x, row_idx, column_idx, value) {
     unique()
 }
 
+#' @details
+#' In retrospect,
+#' `which_other_tile_rows_for_value` and `which_other_tile_columns_for_value()`
+#' are redundant,
+#' as
+#' `value_required_in_other_tile_row()` and `value_required_in_other_tile_row()` 
+#' return `FALSE` anyway if the value is not a choice is not valid for another row or column.
+#' 
 #' @importFrom dplyr filter pull
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble
@@ -173,11 +174,89 @@ which_other_tile_columns_for_value <- function(x, row_idx, column_idx, value) {
   column_tile <- get_tile_index(column_idx)
   tile_columns <- get_tile_indices(column_tile)
   tile_other_columns <- setdiff(tile_columns, column_idx)
+  # logic
   choice_other_columns <- x %>% 
     as_tibble() %>% 
     filter(.data[[.grid_value_name]] == value &
         .data[[.grid_column_name]] %in% tile_other_columns &
         .data[[.grid_row_name]] %in% tile_rows) %>% 
-    pull({{.grid_column_name}}) %>% 
+    pull({{ .grid_column_name }}) %>% 
     unique()
+}
+
+#' @importFrom dplyr filter pull
+#' @importFrom rlang .data
+#' 
+#' @rdname INTERNAL_eliminate_impossible_choices
+value_required_in_other_tile_row <- function(x, row_idx, column_idx, value) {
+  # row
+  row_tile <- get_tile_index(row_idx)
+  tile_rows <- get_tile_indices(row_tile)
+  tile_other_rows <- setdiff(tile_rows, row_idx)
+  # column
+  column_tile <- get_tile_index(column_idx)
+  tile_columns <- get_tile_indices(column_tile)
+  other_tiles_columns <- setdiff(1:9, tile_columns)
+  # logic
+  for (other_row_idx in tile_other_rows) {
+    choices_in_other_row_in_tile <- x %>% 
+      as_tibble() %>% 
+      filter(.data[[.grid_row_name]] %in% other_row_idx &
+          .data[[.grid_column_name]] %in% tile_columns) %>% 
+      pull({{ .grid_value_name }}) %>% 
+      unique()
+    choices_in_other_row_in_other_tiles <- x %>% 
+      as_tibble() %>% 
+      filter(.data[[.grid_row_name]] %in% other_row_idx &
+          .data[[.grid_column_name]] %in% other_tiles_columns) %>% 
+      pull({{ .grid_value_name }}) %>% 
+      unique()
+    if (value %in% choices_in_other_row_in_tile &&
+        !value %in% choices_in_other_row_in_other_tiles) {
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+#' @importFrom dplyr filter pull
+#' @importFrom rlang .data
+#' 
+#' @rdname INTERNAL_eliminate_impossible_choices
+value_required_in_other_tile_column <- function(x, row_idx, column_idx, value) {
+  # row
+  row_tile <- get_tile_index(row_idx)
+  tile_rows <- get_tile_indices(row_tile)
+  other_tiles_rows <- setdiff(1:9, tile_rows)
+  # column
+  column_tile <- get_tile_index(column_idx)
+  tile_columns <- get_tile_indices(column_tile)
+  tile_other_columns <- setdiff(tile_columns, column_idx)
+  # logic
+  for (other_column_idx in tile_other_columns) {
+    choices_in_other_column_in_tile <- x %>% 
+      as_tibble() %>% 
+      filter(.data[[.grid_column_name]] %in% other_column_idx &
+          .data[[.grid_row_name]] %in% tile_rows) %>% 
+      pull({{ .grid_value_name }}) %>% 
+      unique()
+    choices_in_other_column_in_other_tiles <- x %>% 
+      as_tibble() %>% 
+      filter(.data[[.grid_column_name]] %in% other_column_idx &
+          .data[[.grid_row_name]] %in% other_tiles_rows) %>% 
+      pull({{ .grid_value_name }}) %>% 
+      unique()
+    if (value %in% choices_in_other_column_in_tile &&
+        !value %in% choices_in_other_column_in_other_tiles) {
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+
+#' @rdname INTERNAL_eliminate_impossible_choices
+value_required_elsewhere_in_tile <- function(x, row_idx, column_idx, value) {
+  return(
+    value_required_in_other_tile_column(x, row_idx, column_idx, value) ||
+    value_required_in_other_tile_column(x, row_idx, column_idx, value)
+  )
 }

@@ -66,10 +66,34 @@ test_that("which_other_tile_rows_for_value returns the expected indices", {
 })
 
 
-test_that("which_other_tile_columns_for_value", {
+test_that("which_other_tile_columns_for_value returns the expected indices", {
   x <- simulate_grid()
   
   out <- sudoku:::which_other_tile_columns_for_value(x, 1, 1, 5)
   
   expect_identical(out, 3L)
+})
+
+test_that("value_required_in_other_tile_row return TRUE/FALSE when expected", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::value_required_in_other_tile_row(x, 1, 1, 5)
+  
+  expect_true(out)
+})
+
+test_that("value_required_in_other_tile_row return TRUE/FALSE when expected", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::value_required_in_other_tile_column(x, 1, 1, 5)
+  
+  expect_true(out)
+})
+
+test_that("value_required_elsewhere_in_tile return TRUE/FALSE when expected", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::value_required_elsewhere_in_tile(x, 1, 1, 5)
+  
+  expect_true(out)
 })
