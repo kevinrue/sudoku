@@ -62,3 +62,35 @@ plot.SudokuGrid <- function(x, ...) {
     theme_void() +
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
 }
+
+#' @importFrom tibble as_tibble
+#' @importFrom dplyr filter pull
+#' @importFrom rlang .data
+get_tile_values <- function(x, row_idx, column_idx) {
+  row_tile <- get_tile_index(row_idx)
+  column_tile <- get_tile_index(column_idx)
+  get_rows <- get_tile_indices(row_tile)
+  get_columns <- get_tile_indices(column_tile)
+  x %>% 
+    as_tibble() %>% 
+    # filter(row %in% get_rows & column %in% get_columns & !is.na(value)) %>% 
+    filter(
+      .data[[.grid_row_name]] %in% get_rows &
+        .data[[.grid_column_name]] %in% get_columns &
+        !is.na(.data[[.grid_value_name]])
+    ) %>% 
+    pull({{ .grid_value_name }})
+}
+
+#' @importFrom dplyr filter pull
+#' @importFrom rlang .data
+get_tile_values <- function(x, row_idx, column_idx) {
+  row_tile <- get_tile_index(row_idx)
+  column_tile <- get_tile_index(column_idx)
+  get_rows <- get_tile_indices(row_tile)
+  get_columns <- get_tile_indices(column_tile)
+  x %>% 
+    as_tibble() %>% 
+    filter(.data[[.grid_row_name]] %in% get_rows & .data[[.grid_column_name]] %in% get_columns & !is.na(.data[[.grid_value_name]])) %>% 
+    pull({{.grid_value_name}})
+}
