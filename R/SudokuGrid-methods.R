@@ -117,5 +117,6 @@ only_cell_in_tile_row_for_value <- function(x, row_idx, column_idx, value) {
     filter(.data[[.grid_value_name]] == value &
         .data[[.grid_row_name]] == row_idx &
         .data[[.grid_column_name]] %in% tile_other_columns) %>% 
-    nrow() != 0
+    nrow() %>% 
+    identical(0L)
 }

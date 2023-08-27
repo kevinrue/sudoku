@@ -44,7 +44,7 @@ test_that("get_tile_values() returns the expected values", {
 test_that("only_cell_in_tile_row_for_value() return TRUE/FALSE when expected", {
   x <- simulate_grid()
   
-  out <- sudoku:::only_cell_in_tile_row_for_value(x, 1, 1, 1)
+  out <- sudoku:::only_cell_in_tile_row_for_value(x, 1, 1, 2)
   
-  expect_false(out)
+  expect_true(out)
 })
