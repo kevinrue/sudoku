@@ -120,3 +120,64 @@ only_cell_in_tile_row_for_value <- function(x, row_idx, column_idx, value) {
     nrow() %>% 
     identical(0L)
 }
+
+#' @importFrom dplyr filter
+#' @importFrom rlang .data
+#' 
+#' @rdname INTERNAL_eliminate_impossible_choices
+only_cell_in_tile_column_for_value <- function(x, row_idx, column_idx, value) {
+  row_tile <- get_tile_index(row_idx)
+  tile_rows <- get_tile_indices(row_tile)
+  tile_other_rows <- setdiff(tile_rows, row_idx)
+  x %>% 
+    as_tibble() %>% 
+    filter(.data[[.grid_value_name]] == value &
+        .data[[.grid_row_name]] == column_idx &
+        .data[[.grid_column_name]] %in% tile_other_rows) %>% 
+    nrow() %>% 
+    identical(0L)
+}
+
+#' @importFrom dplyr filter pull
+#' @importFrom rlang .data
+#' @importFrom tibble as_tibble
+#' 
+#' @rdname INTERNAL_eliminate_impossible_choices
+which_other_tile_rows_for_value <- function(x, row_idx, column_idx, value) {
+  # row
+  row_tile <- get_tile_index(row_idx)
+  tile_rows <- get_tile_indices(row_tile)
+  tile_other_rows <- setdiff(tile_rows, row_idx)
+  # column
+  column_tile <- get_tile_index(column_idx)
+  tile_columns <- get_tile_indices(column_tile)
+  choice_other_rows <- x %>% 
+    as_tibble() %>% 
+    filter(.data[[.grid_value_name]] == value &
+        .data[[.grid_row_name]] %in% tile_other_rows &
+        .data[[.grid_column_name]] %in% tile_columns) %>% 
+    pull({{.grid_row_name}}) %>% 
+    unique()
+}
+
+#' @importFrom dplyr filter pull
+#' @importFrom rlang .data
+#' @importFrom tibble as_tibble
+#' 
+#' @rdname INTERNAL_eliminate_impossible_choices
+which_other_tile_columns_for_value <- function(x, row_idx, column_idx, value) {
+  # row
+  row_tile <- get_tile_index(row_idx)
+  tile_rows <- get_tile_indices(row_tile)
+  # column
+  column_tile <- get_tile_index(column_idx)
+  tile_columns <- get_tile_indices(column_tile)
+  tile_other_columns <- setdiff(tile_columns, column_idx)
+  choice_other_columns <- x %>% 
+    as_tibble() %>% 
+    filter(.data[[.grid_value_name]] == value &
+        .data[[.grid_column_name]] %in% tile_other_columns &
+        .data[[.grid_row_name]] %in% tile_rows) %>% 
+    pull({{.grid_column_name}}) %>% 
+    unique()
+}

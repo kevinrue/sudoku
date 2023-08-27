@@ -48,3 +48,28 @@ test_that("only_cell_in_tile_row_for_value() return TRUE/FALSE when expected", {
   
   expect_true(out)
 })
+
+test_that("only_cell_in_tile_column_for_value() return TRUE/FALSE when expected", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::only_cell_in_tile_column_for_value(x, 1, 1, 2)
+  
+  expect_true(out)
+})
+
+test_that("which_other_tile_rows_for_value returns the expected indices", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::which_other_tile_rows_for_value(x, 1, 1, 5)
+  
+  expect_identical(out, 3L)
+})
+
+
+test_that("which_other_tile_columns_for_value", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::which_other_tile_columns_for_value(x, 1, 1, 5)
+  
+  expect_identical(out, 3L)
+})
