@@ -97,8 +97,17 @@ get_tile_values <- function(x, row_idx, column_idx) {
     pull({{.grid_value_name}})
 }
 
+#' Eliminate Now-Impossible Choices
+#' 
+#' @param x A [SudokuGrid-class] object.
+#' @param row_idx Index of the row of the cell being tested.
+#' @param column_idx Index of the column of the cell being tested.
+#' @param value Value being tested.
+#'
 #' @importFrom dplyr filter
 #' @importFrom rlang .data
+#' 
+#' @rdname INTERNAL_eliminate_impossible_choices
 only_cell_in_tile_row_for_value <- function(x, row_idx, column_idx, value) {
   column_tile <- get_tile_index(column_idx)
   tile_columns <- get_tile_indices(column_tile)

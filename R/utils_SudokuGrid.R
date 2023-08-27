@@ -13,7 +13,7 @@ get_tile_index <- function(index) {
   (index-1) %/% 3 + 1
 }
 
-#' @rdname get_tile_index
+#' @rdname INTERNAL_get_tile_index
 get_tile_indices <- function(index) {
   1:3 + (index-1)*3
 }
