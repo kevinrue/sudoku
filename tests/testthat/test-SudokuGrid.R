@@ -33,10 +33,18 @@ test_that("replaceCellValues() replaces the values of a grid cell", {
   )
 })
 
-test_that("get_tile_values", {
+test_that("get_tile_values() returns the expected values", {
   x <- simulate_grid()
   
   out <- sudoku:::get_tile_values(x, 1, 1)
   
   expect_identical(out, c(2L, 1L, 5L))
+})
+
+test_that("only_cell_in_tile_row_for_value() return TRUE/FALSE when expected", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::only_cell_in_tile_row_for_value(x, 1, 1, 1)
+  
+  expect_false(out)
 })

@@ -91,6 +91,22 @@ get_tile_values <- function(x, row_idx, column_idx) {
   get_columns <- get_tile_indices(column_tile)
   x %>% 
     as_tibble() %>% 
-    filter(.data[[.grid_row_name]] %in% get_rows & .data[[.grid_column_name]] %in% get_columns & !is.na(.data[[.grid_value_name]])) %>% 
+    filter(.data[[.grid_row_name]] %in% get_rows &
+        .data[[.grid_column_name]] %in% get_columns &
+        !is.na(.data[[.grid_value_name]])) %>% 
     pull({{.grid_value_name}})
+}
+
+#' @importFrom dplyr filter
+#' @importFrom rlang .data
+only_cell_in_tile_row_for_value <- function(x, row_idx, column_idx, value) {
+  column_tile <- get_tile_index(column_idx)
+  tile_columns <- get_tile_indices(column_tile)
+  tile_other_columns <- setdiff(tile_columns, column_idx)
+  x %>% 
+    as_tibble() %>% 
+    filter(.data[[.grid_value_name]] == value &
+        .data[[.grid_row_name]] == row_idx &
+        .data[[.grid_column_name]] %in% tile_other_columns) %>% 
+    nrow() != 0
 }
