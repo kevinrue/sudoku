@@ -4,12 +4,12 @@ replace_cell_values.sudoku <- function(object, i, j, values,
   given=ifelse(identical(length(values), 1L), TRUE, FALSE))
 {
   added_values <- tibble(
-    grid_row = i, # TODO: <data-masking>
-    grid_column = j, # TODO: <data-masking>
-    grid_value = values, # TODO: <data-masking>
-    given = given # TODO: <data-masking>
+    "{ .grid_row_name }" := i,
+    "{ .grid_column_name }" := j,
+    "{ .grid_value_name }" := values,
+    "{ .grid_given_name }" := given
   )
-  colnames(added_values) <- c(.grid_row_name, .grid_column_name, .grid_value_name, .grid_given_name)
+  # colnames(added_values) <- c(.grid_row_name, .grid_column_name, .grid_value_name, .grid_given_name)
   object %>% 
     as_tibble() %>% 
     filter(!(.data[[.grid_row_name]] == i & .data[[.grid_column_name]] == j)) %>% 
@@ -104,7 +104,7 @@ get_tile_values <- function(x, row_idx, column_idx) {
 #' @importFrom dplyr filter
 #' @importFrom rlang .data
 #' 
-#' @rdname INTERNAL_eliminate_impossible_choices
+#' @rdname INTERNAL_update_choices
 only_cell_in_tile_row_for_value <- function(x, row_idx, column_idx, value) {
   # column
   column_tile <- get_tile_index(column_idx)
@@ -123,7 +123,7 @@ only_cell_in_tile_row_for_value <- function(x, row_idx, column_idx, value) {
 #' @importFrom dplyr filter
 #' @importFrom rlang .data
 #' 
-#' @rdname INTERNAL_eliminate_impossible_choices
+#' @rdname INTERNAL_update_choices
 only_cell_in_tile_column_for_value <- function(x, row_idx, column_idx, value) {
   # row
   row_tile <- get_tile_index(row_idx)
@@ -143,7 +143,7 @@ only_cell_in_tile_column_for_value <- function(x, row_idx, column_idx, value) {
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble
 #' 
-#' @rdname INTERNAL_eliminate_impossible_choices
+#' @rdname INTERNAL_update_choices
 which_other_tile_rows_for_value <- function(x, row_idx, column_idx, value) {
   # row
   row_tile <- get_tile_index(row_idx)
@@ -174,7 +174,7 @@ which_other_tile_rows_for_value <- function(x, row_idx, column_idx, value) {
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble
 #' 
-#' @rdname INTERNAL_eliminate_impossible_choices
+#' @rdname INTERNAL_update_choices
 which_other_tile_columns_for_value <- function(x, row_idx, column_idx, value) {
   # row
   row_tile <- get_tile_index(row_idx)
@@ -196,7 +196,7 @@ which_other_tile_columns_for_value <- function(x, row_idx, column_idx, value) {
 #' @importFrom dplyr filter pull
 #' @importFrom rlang .data
 #' 
-#' @rdname INTERNAL_eliminate_impossible_choices
+#' @rdname INTERNAL_update_choices
 value_required_in_other_tile_row <- function(x, row_idx, column_idx, value) {
   # row
   row_tile <- get_tile_index(row_idx)
@@ -230,7 +230,7 @@ value_required_in_other_tile_row <- function(x, row_idx, column_idx, value) {
 #' @importFrom dplyr filter pull
 #' @importFrom rlang .data
 #' 
-#' @rdname INTERNAL_eliminate_impossible_choices
+#' @rdname INTERNAL_update_choices
 value_required_in_other_tile_column <- function(x, row_idx, column_idx, value) {
   # row
   row_tile <- get_tile_index(row_idx)
@@ -262,7 +262,7 @@ value_required_in_other_tile_column <- function(x, row_idx, column_idx, value) {
   return(FALSE)
 }
 
-#' @rdname INTERNAL_eliminate_impossible_choices
+#' @rdname INTERNAL_update_choices
 value_required_elsewhere_in_tile <- function(x, row_idx, column_idx, value) {
   return(
     value_required_in_other_tile_column(x, row_idx, column_idx, value) ||
@@ -275,7 +275,7 @@ value_required_elsewhere_in_tile <- function(x, row_idx, column_idx, value) {
 #' @importFrom dplyr filter pull
 #' @importFrom rlang .data
 #' 
-#' @rdname INTERNAL_eliminate_impossible_choices
+#' @rdname INTERNAL_update_choices
 compute_cell_choices <- function(x, row_idx, column_idx, firstpass) {
   grid_value <- x %>% 
     as_tibble() %>% 
@@ -313,4 +313,26 @@ compute_cell_choices <- function(x, row_idx, column_idx, firstpass) {
   }
   
   choices
+}
+
+#' @importFrom dplyr arrange bind_rows filter
+#' @importFrom rlang .data
+#' @importFrom tibble as_tibble
+#' 
+#' @rdname INTERNAL_update_choices
+update_choices_xy <- function(x, grid_row, grid_column, values) {
+  if (length(values) == 0) {
+    return(x)
+  }
+  x %>% 
+    as_tibble() %>% 
+    filter(!(.data[[.grid_row_name]] == grid_row & .data[[.grid_column_name]] == grid_column)) %>% 
+    bind_rows(tibble(
+      "{ .grid_row_name }" := grid_row,
+      "{ .grid_column_name }" := grid_column,
+      "{ .grid_value_name }" := values,
+      "{ .grid_given_name }" := values
+    )) %>% 
+    arrange({{ .grid_row_name }}, {{ .grid_column_name }}) %>% 
+    as_sudoku()
 }

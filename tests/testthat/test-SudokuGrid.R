@@ -121,3 +121,11 @@ test_that("plotValue produces a ggplot object", {
   
   expect_s3_class(out, "ggplot")
 })
+
+test_that("update_choices_xy", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::update_choices_xy(x, 1, 1, 5L)
+  
+  expect_identical(out %>% filter(grid_row == 1 & grid_column == 1) %>% pull(grid_value), 5L)  
+})
