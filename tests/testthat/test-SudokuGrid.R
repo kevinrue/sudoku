@@ -129,3 +129,14 @@ test_that("update_choices_xy", {
   
   expect_identical(out %>% filter(grid_row == 1 & grid_column == 1) %>% pull(grid_value), 5L)  
 })
+
+test_that("update_choices_all", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::update_choices_all(x, firstpass = TRUE)
+  
+  expect_lte(
+    sum(is.na(out$grid_value)),
+    sum(is.na(x$grid_value))
+  )
+})

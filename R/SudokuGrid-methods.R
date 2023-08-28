@@ -290,7 +290,6 @@ compute_cell_choices <- function(x, row_idx, column_idx, firstpass) {
   choices <- 1:9
   
   row_values_used <- x %>% 
-    as_tibble() %>% 
     filter(.data[[.grid_row_name]] == row_idx &
         !is.na(.data[[.grid_value_name]])) %>% 
     pull({{ .grid_value_name }})
@@ -320,19 +319,36 @@ compute_cell_choices <- function(x, row_idx, column_idx, firstpass) {
 #' @importFrom tibble as_tibble
 #' 
 #' @rdname INTERNAL_update_choices
-update_choices_xy <- function(x, grid_row, grid_column, values) {
+update_choices_xy <- function(x, row_idx, column_idx, values) {
   if (length(values) == 0) {
     return(x)
   }
   x %>% 
-    as_tibble() %>% 
-    filter(!(.data[[.grid_row_name]] == grid_row & .data[[.grid_column_name]] == grid_column)) %>% 
+    filter(!(.data[[.grid_row_name]] == row_idx & .data[[.grid_column_name]] == column_idx)) %>% 
     bind_rows(tibble(
-      "{ .grid_row_name }" := grid_row,
-      "{ .grid_column_name }" := grid_column,
+      "{ .grid_row_name }" := row_idx,
+      "{ .grid_column_name }" := column_idx,
       "{ .grid_value_name }" := values,
-      "{ .grid_given_name }" := values
+      "{ .grid_given_name }" := FALSE
     )) %>% 
-    arrange({{ .grid_row_name }}, {{ .grid_column_name }}) %>% 
-    as_sudoku()
+    arrange({{ .grid_row_name }}, {{ .grid_column_name }})
+}
+
+#' @importFrom rlang .data
+update_choices_all <- function(x, firstpass) {
+  for (row_idx in 1:9) {
+    for (column_idx in 1:9) {
+      sudoku_grid_value <- x %>% 
+        filter(.data[[.grid_row_name]] == row_idx & .data[[.grid_column_name]] == column_idx) %>% 
+        pull({{ .grid_value_name }})
+      if (identical(length(sudoku_grid_value), 1L) && !is.na(sudoku_grid_value)) {
+        next
+      } else {
+        choices <- compute_cell_choices(x, row_idx, column_idx, firstpass)
+        x <- update_choices_xy(x, row_idx, column_idx, choices)
+      }
+    }
+  }
+  x %>% 
+    arrange({{ .grid_row_name }}, {{ .grid_column_name }})
 }
