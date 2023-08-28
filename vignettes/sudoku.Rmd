@@ -36,6 +36,15 @@ m
 Construct a `SudokuGrid` object from that matrix.
 
 ```{r}
-sudoku_grid <- from_matrix(m)
+sudoku_grid <- as_sudoku(m)
 sudoku_grid
 ```
+
+```{r}
+class(sudoku_grid)
+```
+
+```{r}
+plot(sudoku_grid)
+```
+

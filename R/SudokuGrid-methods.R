@@ -1,25 +1,8 @@
-#' Replace Possible Values in SudokuGrid Cell
-#' 
-#' Replace the set of values possible in a SudokuGrid cell.
-#'
-#' @param object A [SudokuGrid-class] object.
-#' @param i Row index.
-#' @param j Column index.
-#' @param values Integer vectors comprising values from 1 to 9.
-#' @param given Whether the values were given in the starting grid.
-#' Default to `TRUE` if a `value` has length 1.
-#'
-#' @return The updated [SudokuGrid-class] object.
-#' 
-#' @importFrom dplyr arrange bind_rows filter pick
-#' @importFrom rlang := .data
-#' @importFrom tibble tibble
-#' @importFrom tidyselect all_of
-#' 
+#' @export
 #' @rdname INTERNAL_replaceCellValues
-setMethod("replaceCellValues", "SudokuGrid", function(object, i, j, values,
-  given=ifelse(identical(length(values), 1L), TRUE, FALSE)
-){
+replace_cell_values.sudoku <- function(object, i, j, values,
+  given=ifelse(identical(length(values), 1L), TRUE, FALSE))
+{
   added_values <- tibble(
     grid_row = i, # TODO: <data-masking>
     grid_column = j, # TODO: <data-masking>
@@ -32,11 +15,11 @@ setMethod("replaceCellValues", "SudokuGrid", function(object, i, j, values,
     filter(!(.data[[.grid_row_name]] == i & .data[[.grid_column_name]] == j)) %>% 
     bind_rows(added_values) %>% 
     arrange(pick(all_of(c(.grid_row_name, .grid_column_name))))
-})
+}
 
 #' Plot the sudoku grid
 #'
-#' @param x A [SudokuGrid-class] object. 
+#' @param x A `sudoku` object. 
 #' @param ... Arguments passed to and from other methods.
 #'
 #' @return A `ggplot` object.
@@ -46,12 +29,12 @@ setMethod("replaceCellValues", "SudokuGrid", function(object, i, j, values,
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble
 #' 
-#' @rdname plot.SudokuGrid
+#' @rdname plot.sudoku
 #'
 #' @examples
 #' sudoku_grid <- simulate_grid()
 #' plot(sudoku_grid)
-plot.SudokuGrid <- function(x, ...) {
+plot.sudoku <- function(x, ...) {
   # data
   x_gg <- x %>% 
     as_tibble() %>% 
@@ -68,29 +51,25 @@ plot.SudokuGrid <- function(x, ...) {
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
 }
 
-#' @param value Integer scalar from 1 to 9. Display only that value.
-#' 
-#' @export
-#' 
-#' @rdname plot.SudokuGrid
-plotValue <- function(x, value, ...) UseMethod("plotValue")
-
 #' @export
 #' 
 #' @importFrom dplyr filter
 #' @importFrom rlang .data
-plotValue.SudokuGrid <- function(x, value, ...) {
+#' 
+#' @rdname plot.sudoku
+plot_value.sudoku <- function(x, value, ...) {
   # data
   x_gg <- x %>% 
-    as_tibble() %>% 
+    as_tibble() %>%
     filter(.data[[.grid_value_name]] == value) %>% 
     mutate_at(c(.grid_given_name), factor, c(TRUE, FALSE))
-  empty_cells <- expand.grid(grid_row = 1:9, grid_column = 1:9)
+  empty_cells <- as_tibble(expand.grid(grid_row = 1:9, grid_column = 1:9))
   colnames(empty_cells) <- c(.grid_row_name, .grid_column_name)
   empty_cells[[.grid_value_name]] <- NA
   empty_cells[[.grid_given_name]] <- NA
   x_gg <- bind_rows(empty_cells, x_gg)
-  plot.SudokuGrid(x_gg)
+  x_gg <- as_sudoku(x_gg)
+  plot.sudoku(x_gg)
 }
 
 #' @importFrom tibble as_tibble
@@ -117,7 +96,7 @@ get_tile_values <- function(x, row_idx, column_idx) {
 
 #' Eliminate Impossible Choices
 #' 
-#' @param x A [SudokuGrid-class] object.
+#' @param x A `sudoku` object.
 #' @param row_idx Index of the row of the cell being tested.
 #' @param column_idx Index of the column of the cell being tested.
 #' @param value Value being tested.

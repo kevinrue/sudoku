@@ -2,7 +2,7 @@
 #'
 #' @param return_type Character scalar. Type of output to return.
 #'
-#' @return For `return_type="SudokuGrid"` (default), a [SudokuGrid-class] object.
+#' @return For `return_type="SudokuGrid"` (default), a `sudoku` object.
 #' 
 #' For `return_type="matrix"`, an integer matrix.
 #' @export
@@ -26,7 +26,7 @@ simulate_grid <- function(return_type = c("SudokuGrid", "matrix")) {
   if (identical(return_type, "matrix")) {
     return(m)
   }
-  sudoku_grid <- from_matrix(m)
+  sudoku_grid <- as_sudoku(m)
   if (identical(return_type, "SudokuGrid")) {
     return(sudoku_grid)
   }

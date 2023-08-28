@@ -10,7 +10,7 @@ simulate_grid(return_type = c("SudokuGrid", "matrix"))
 \item{return_type}{Character scalar. Type of output to return.}
 }
 \value{
-For \code{return_type="SudokuGrid"} (default), a \linkS4class{SudokuGrid} object.
+For \code{return_type="SudokuGrid"} (default), a \code{sudoku} object.
 
 For \code{return_type="matrix"}, an integer matrix.
 }
