@@ -45,22 +45,52 @@ setMethod("replaceCellValues", "SudokuGrid", function(object, i, j, values,
 #' @importFrom ggplot2 aes geom_tile geom_text ggplot scale_color_manual theme_void
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble
+#' 
+#' @rdname plot.SudokuGrid
 #'
 #' @examples
 #' sudoku_grid <- simulate_grid()
 #' plot(sudoku_grid)
 plot.SudokuGrid <- function(x, ...) {
+  # data
   x_gg <- x %>% 
     as_tibble() %>% 
     mutate_at(c(.grid_given_name), factor, c(TRUE, FALSE))
+  # tiles
   tile_centers <- expand.grid(grid_row = 2 + 0:2*3, grid_column = 2 + 0:2*3)
   colnames(tile_centers) <- c(.grid_row_name, .grid_column_name)
+  # plot
   ggplot(x_gg, aes(.data[[.grid_column_name]], 10-.data[[.grid_row_name]])) +
     geom_tile(fill = "white", color = "black", width = 1, height = 1) +
     geom_tile(aes(10-.data[[.grid_row_name]], .data[[.grid_column_name]]), tile_centers, fill = NA, color = "black", width = 3, height = 3, linewidth = 2) +
     geom_text(aes(label = .data[[.grid_value_name]], color = .data[[.grid_given_name]]), x_gg %>% filter(!is.na(.data[[.grid_value_name]]))) +
     theme_void() +
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
+}
+
+#' @param value Integer scalar from 1 to 9. Display only that value.
+#' 
+#' @export
+#' 
+#' @rdname plot.SudokuGrid
+plotValue <- function(x, value, ...) UseMethod("plotValue")
+
+#' @export
+#' 
+#' @importFrom dplyr filter
+#' @importFrom rlang .data
+plotValue.SudokuGrid <- function(x, value, ...) {
+  # data
+  x_gg <- x %>% 
+    as_tibble() %>% 
+    filter(.data[[.grid_value_name]] == value) %>% 
+    mutate_at(c(.grid_given_name), factor, c(TRUE, FALSE))
+  empty_cells <- expand.grid(grid_row = 1:9, grid_column = 1:9)
+  colnames(empty_cells) <- c(.grid_row_name, .grid_column_name)
+  empty_cells[[.grid_value_name]] <- NA
+  empty_cells[[.grid_given_name]] <- NA
+  x_gg <- bind_rows(empty_cells, x_gg)
+  plot.SudokuGrid(x_gg)
 }
 
 #' @importFrom tibble as_tibble
@@ -259,4 +289,49 @@ value_required_elsewhere_in_tile <- function(x, row_idx, column_idx, value) {
     value_required_in_other_tile_column(x, row_idx, column_idx, value) ||
     value_required_in_other_tile_column(x, row_idx, column_idx, value)
   )
+}
+
+#' @param firstpass Logical scalar indicating whether the choices have been computed for all cells yet.
+#'
+#' @importFrom dplyr filter pull
+#' @importFrom rlang .data
+#' 
+#' @rdname INTERNAL_eliminate_impossible_choices
+compute_cell_choices <- function(x, row_idx, column_idx, firstpass) {
+  grid_value <- x %>% 
+    as_tibble() %>% 
+    filter(.data[[.grid_row_name]] == row_idx &
+        .data[[.grid_column_name]] == column_idx) %>% 
+    pull({{ .grid_value_name }})
+  
+  if (!is.na(grid_value)) {
+    return(grid_value)
+  }
+  
+  choices <- 1:9
+  
+  row_values_used <- x %>% 
+    as_tibble() %>% 
+    filter(.data[[.grid_row_name]] == row_idx &
+        !is.na(.data[[.grid_value_name]])) %>% 
+    pull({{ .grid_value_name }})
+  choices <- setdiff(choices, row_values_used)
+  
+  column_values_used <- x %>% 
+    as_tibble() %>% 
+    filter(.data[[.grid_column_name]] == column_idx &
+        !is.na(.data[[.grid_value_name]])) %>% 
+    pull({{ .grid_value_name }})
+  choices <- setdiff(choices, column_values_used)
+  
+  tile_values_used <- get_tile_values(x, row_idx, column_idx)
+  choices <- setdiff(choices, tile_values_used)
+  
+  if (!firstpass) {
+    exclude <- vapply(choices, value_required_elsewhere_in_tile, logical(1),
+      x = x, row_idx = row_idx, column_idx = column_idx)
+    choices <- choices[!exclude]
+  }
+  
+  choices
 }

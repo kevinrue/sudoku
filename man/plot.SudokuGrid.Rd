@@ -2,14 +2,19 @@
 % Please edit documentation in R/SudokuGrid-methods.R
 \name{plot.SudokuGrid}
 \alias{plot.SudokuGrid}
+\alias{plotValue}
 \title{Plot the sudoku grid}
 \usage{
 \method{plot}{SudokuGrid}(x, ...)
+
+plotValue(x, value, ...)
 }
 \arguments{
 \item{x}{A \linkS4class{SudokuGrid} object.}
 
 \item{...}{Arguments passed to and from other methods.}
+
+\item{value}{Integer scalar from 1 to 9. Display only that value.}
 }
 \value{
 A \code{ggplot} object.

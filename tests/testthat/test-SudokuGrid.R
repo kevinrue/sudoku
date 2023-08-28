@@ -97,3 +97,27 @@ test_that("value_required_elsewhere_in_tile return TRUE/FALSE when expected", {
   
   expect_true(out)
 })
+
+test_that("compute_cell_choices", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::compute_cell_choices(x, 1, 1, firstpass = FALSE)
+  
+  expect_identical(out, 2L)
+  
+  out <- sudoku:::compute_cell_choices(x, 1, 2, firstpass = FALSE)
+  
+  expect_identical(out, c(6L, 7L, 8L))
+  
+  out <- sudoku:::compute_cell_choices(x, 1, 2, firstpass = TRUE)
+  
+  expect_identical(out, c(6L, 7L, 8L))
+})
+
+test_that("plotValue produces a ggplot object", {
+  x <- simulate_grid()
+  
+  out <- plotValue(x, value = 1)
+  
+  expect_s3_class(out, "ggplot")
+})
