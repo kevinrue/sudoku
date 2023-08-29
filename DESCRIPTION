@@ -19,6 +19,7 @@ Imports:
   magrittr,
   methods,
   rlang,
+  stringr,
   tibble,
   tidyr,
   tidyselect

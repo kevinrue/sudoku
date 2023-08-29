@@ -314,6 +314,8 @@ compute_cell_choices <- function(x, row_idx, column_idx, firstpass) {
   choices
 }
 
+#' @param values New set of candidate values.
+#' 
 #' @importFrom dplyr arrange bind_rows filter
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble

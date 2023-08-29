@@ -140,3 +140,9 @@ test_that("update_choices_all", {
     sum(is.na(x$grid_value))
   )
 })
+
+test_that("strwrap_choices produces expected string", {
+  out <- sudoku:::strwrap_choices(1:9)
+  
+  expect_identical(out, "123\n456\n789")
+})
