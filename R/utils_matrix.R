@@ -28,7 +28,9 @@ as_sudoku.matrix <- function(object) {
   x_tbl <- x_tbl %>% 
     pivot_longer(matches("[[:digit:]]"), names_to = .grid_column_name, values_to = .grid_value_name) %>% 
     mutate_at(c(.grid_row_name, .grid_column_name), as.integer)
-  x_tbl[[.grid_given_name]] <- ifelse(is.na(x_tbl[[.grid_value_name]]), NA, TRUE)
+  x_tbl[[.grid_status_name]] <- factor(
+    ifelse(is.na(x_tbl[[.grid_value_name]]), NA, "initial"),
+    c("initial", "candidate", "answer"))
   x_tbl <- as_sudoku(x_tbl)
   x_tbl
 }

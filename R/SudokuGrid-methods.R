@@ -1,17 +1,15 @@
 #' @export
 #' @rdname INTERNAL_replaceCellValues
-replace_cell_values.sudoku <- function(object, i, j, values,
-  given=ifelse(identical(length(values), 1L), TRUE, FALSE))
+replace_cell_values.sudoku <- function(object, i, j, values, status)
 {
+  status <- factor(ifelse(identical(length(values), 1L), "answer", "candidate"))
   added_values <- tibble(
     "{ .grid_row_name }" := i,
     "{ .grid_column_name }" := j,
     "{ .grid_value_name }" := values,
-    "{ .grid_given_name }" := given
+    "{ .grid_status_name }" := status
   )
-  # colnames(added_values) <- c(.grid_row_name, .grid_column_name, .grid_value_name, .grid_given_name)
   object %>% 
-    as_tibble() %>% 
     filter(!(.data[[.grid_row_name]] == i & .data[[.grid_column_name]] == j)) %>% 
     bind_rows(added_values) %>% 
     arrange(pick(all_of(c(.grid_row_name, .grid_column_name))))
@@ -35,20 +33,36 @@ replace_cell_values.sudoku <- function(object, i, j, values,
 #' sudoku_grid <- simulate_grid()
 #' plot(sudoku_grid)
 plot.sudoku <- function(x, ...) {
-  # data
-  x_gg <- x %>% 
-    as_tibble() %>% 
-    mutate_at(c(.grid_given_name), factor, c(TRUE, FALSE))
   # tiles
   tile_centers <- expand.grid(grid_row = 2 + 0:2*3, grid_column = 2 + 0:2*3)
   colnames(tile_centers) <- c(.grid_row_name, .grid_column_name)
   # plot
-  ggplot(x_gg, aes(.data[[.grid_column_name]], 10-.data[[.grid_row_name]])) +
+  ggplot(x, aes(.data[[.grid_column_name]], 10-.data[[.grid_row_name]])) +
     geom_tile(fill = "white", color = "black", width = 1, height = 1) +
     geom_tile(aes(10-.data[[.grid_row_name]], .data[[.grid_column_name]]), tile_centers, fill = NA, color = "black", width = 3, height = 3, linewidth = 2) +
-    geom_text(aes(label = .data[[.grid_value_name]], color = .data[[.grid_given_name]]), x_gg %>% filter(!is.na(.data[[.grid_value_name]]))) +
+    geom_text(aes(label = .data[[.grid_value_name]], color = .data[[.grid_status_name]]), x %>% filter(!is.na(.data[[.grid_value_name]]))) +
     theme_void() +
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
+}
+
+#' @importFrom dplyr across group_by summarise
+#' @importFrom rlang enquo
+plot_choices.sudoku <- function(x) {
+  tile_centers <- expand.grid(row = 2 + 0:2*3, column = 2 + 0:2*3)
+  colnames(tile_centers) <- c(.grid_row_name, .grid_column_name)
+  x <- x %>%
+    group_by(across(c({{.grid_row_name}}, {{.grid_column_name}}))) %>%
+    summarise(
+      "{ .grid_value_name }" := strwrap_choices(.data[[.grid_value_name]]),
+      "{ .grid_status_name }" := summarise_choices_status(.data[[.grid_status_name]])
+    )
+  x %>%
+    ggplot(aes(.data[[.grid_column_name]], 10-.data[[.grid_row_name]])) +
+    geom_tile(fill = "white", color = "black", width = 1, height = 1) +
+    geom_tile(aes(10-.data[[.grid_row_name]], .data[[.grid_column_name]]), tile_centers, fill = NA, color = "black", width = 3, height = 3, linewidth = 2) +
+    geom_text(aes(label = .data[[.grid_value_name]], colour = .data[[.grid_status_name]])) +
+    theme_void() +
+    scale_color_manual(values = c("initial" = "black", "candidate" = "grey", "answer" = "cornflowerblue"))
 }
 
 #' @export
@@ -60,13 +74,11 @@ plot.sudoku <- function(x, ...) {
 plot_value.sudoku <- function(x, value, ...) {
   # data
   x_gg <- x %>% 
-    as_tibble() %>%
-    filter(.data[[.grid_value_name]] == value) %>% 
-    mutate_at(c(.grid_given_name), factor, c(TRUE, FALSE))
+    filter(.data[[.grid_value_name]] == value)
   empty_cells <- as_tibble(expand.grid(grid_row = 1:9, grid_column = 1:9))
   colnames(empty_cells) <- c(.grid_row_name, .grid_column_name)
   empty_cells[[.grid_value_name]] <- NA
-  empty_cells[[.grid_given_name]] <- NA
+  empty_cells[[.grid_status_name]] <- NA
   x_gg <- bind_rows(empty_cells, x_gg)
   x_gg <- as_sudoku(x_gg)
   plot.sudoku(x_gg)
@@ -278,27 +290,25 @@ value_required_elsewhere_in_tile <- function(x, row_idx, column_idx, value) {
 #' @rdname INTERNAL_update_choices
 compute_cell_choices <- function(x, row_idx, column_idx, firstpass) {
   grid_value <- x %>% 
-    as_tibble() %>% 
     filter(.data[[.grid_row_name]] == row_idx &
         .data[[.grid_column_name]] == column_idx) %>% 
     pull({{ .grid_value_name }})
   
-  if (!is.na(grid_value)) {
+  if (identical(length(grid_value), 1L) && !is.na(grid_value)) {
     return(grid_value)
   }
   
   choices <- 1:9
   
   row_values_used <- x %>% 
-    filter(.data[[.grid_row_name]] == row_idx &
-        !is.na(.data[[.grid_value_name]])) %>% 
+    filter(.data[[.grid_status_name]] %in% c("initial", "answer") &
+        .data[[.grid_row_name]] == row_idx) %>% 
     pull({{ .grid_value_name }})
   choices <- setdiff(choices, row_values_used)
   
   column_values_used <- x %>% 
-    as_tibble() %>% 
-    filter(.data[[.grid_column_name]] == column_idx &
-        !is.na(.data[[.grid_value_name]])) %>% 
+    filter(.data[[.grid_status_name]] %in% c("initial", "answer") &
+        .data[[.grid_column_name]] == column_idx) %>% 
     pull({{ .grid_value_name }})
   choices <- setdiff(choices, column_values_used)
   
@@ -322,6 +332,7 @@ compute_cell_choices <- function(x, row_idx, column_idx, firstpass) {
 #' 
 #' @rdname INTERNAL_update_choices
 update_choices_xy <- function(x, row_idx, column_idx, values) {
+  status <- factor(ifelse(identical(length(values), 1L), "answer", "candidate"))
   if (length(values) == 0) {
     return(x)
   }
@@ -331,9 +342,9 @@ update_choices_xy <- function(x, row_idx, column_idx, values) {
       "{ .grid_row_name }" := row_idx,
       "{ .grid_column_name }" := column_idx,
       "{ .grid_value_name }" := values,
-      "{ .grid_given_name }" := FALSE
+      "{ .grid_status_name }" := factor(status)
     )) %>% 
-    arrange({{ .grid_row_name }}, {{ .grid_column_name }})
+    arrange(across(c({{ .grid_row_name }}, {{ .grid_column_name }})))
 }
 
 #' @importFrom rlang .data

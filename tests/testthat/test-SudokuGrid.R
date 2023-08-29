@@ -125,7 +125,7 @@ test_that("plotValue produces a ggplot object", {
 test_that("update_choices_xy", {
   x <- simulate_grid()
   
-  out <- sudoku:::update_choices_xy(x, 1, 1, 5L)
+  out <- sudoku:::update_choices_xy(x, 1L, 1L, 5L)
   
   expect_identical(out %>% filter(grid_row == 1 & grid_column == 1) %>% pull(grid_value), 5L)  
 })
@@ -145,4 +145,13 @@ test_that("strwrap_choices produces expected string", {
   out <- sudoku:::strwrap_choices(1:9)
   
   expect_identical(out, "123\n456\n789")
+})
+
+test_that("plot_choices.sudoku", {
+  x <- simulate_grid()
+  x <- update_choices_all(x, firstpass = TRUE)
+
+  out <- sudoku:::plot_choices.sudoku(x)
+
+  expect_s3_class(out, "ggplot")
 })

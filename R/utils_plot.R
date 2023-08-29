@@ -7,6 +7,7 @@
 #' @importFrom stringr str_flatten str_length str_split
 #' @importFrom utils head
 strwrap_choices <- function(x) {
+  if (identical(x, NA_integer_)) return(NA)
   x <- str_flatten(x)
   lapply(
     split(
@@ -15,4 +16,18 @@ strwrap_choices <- function(x) {
     ),
     str_flatten
   ) %>% str_flatten(collapse = "\n")
+}
+
+summarise_choices_status <- function(x) {
+  if (all(is.na(x))) {
+    return(x)
+  } else if (identical(as.character(x), "initial")) {
+    return(x)
+  } else if (all(as.character(x) == "candidate")) {
+    return(x[1])
+  } else if (identical(as.character(x), "answer")) {
+    return(x)
+  } else {
+    stop("Invalid set of values for status")
+  }
 }

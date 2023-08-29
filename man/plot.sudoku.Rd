@@ -2,11 +2,14 @@
 % Please edit documentation in R/AllGenerics.R, R/SudokuGrid-methods.R
 \name{plot_value}
 \alias{plot_value}
+\alias{plot_choices}
 \alias{plot.sudoku}
 \alias{plot_value.sudoku}
 \title{Plot the sudoku grid}
 \usage{
 plot_value(x, value, ...)
+
+plot_choices(x, ...)
 
 \method{plot}{sudoku}(x, ...)
 
