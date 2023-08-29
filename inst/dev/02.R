@@ -49,7 +49,7 @@ sudoku_grid <- add_value_xy(sudoku_grid, 9, 1, 1, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 9, 5, 7, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 9, 6, 6, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 9, 9, 3, given=TRUE)
-plot_grid(sudoku_grid)
+# plot_grid(sudoku_grid)
 
 # grid 2 (challenging) ----
 
@@ -80,7 +80,7 @@ sudoku_grid <- add_value_xy(sudoku_grid, 8, 6, 8, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 9, 1, 6, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 9, 7, 3, given=TRUE)
 sudoku_grid <- add_value_xy(sudoku_grid, 9, 8, 9, given=TRUE)
-plot_grid(sudoku_grid)
+# plot_grid(sudoku_grid)
 
 get_tile_index <- function(index) {
   (index-1) %/% 3 + 1
