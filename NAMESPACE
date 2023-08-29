@@ -2,6 +2,7 @@
 
 S3method(as_sudoku,matrix)
 S3method(plot,sudoku)
+S3method(plot_choices,sudoku)
 S3method(plot_value,sudoku)
 S3method(replace_cell_values,sudoku)
 export(as_sudoku)

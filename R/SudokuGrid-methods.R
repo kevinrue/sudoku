@@ -45,6 +45,7 @@ plot.sudoku <- function(x, ...) {
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
 }
 
+#' @export
 #' @importFrom dplyr across group_by summarise
 #' @importFrom rlang enquo
 plot_choices.sudoku <- function(x) {
@@ -96,12 +97,9 @@ get_tile_values <- function(x, row_idx, column_idx) {
   get_columns <- get_tile_indices(column_tile)
   # logic
   x %>% 
-    as_tibble() %>% 
-    # filter(row %in% get_rows & column %in% get_columns & !is.na(value)) %>% 
-    filter(
-      .data[[.grid_row_name]] %in% get_rows &
-        .data[[.grid_column_name]] %in% get_columns &
-        !is.na(.data[[.grid_value_name]])
+    filter(.data[[.grid_status_name]] %in% c("initial", "answer") &
+        .data[[.grid_row_name]] %in% get_rows &
+        .data[[.grid_column_name]] %in% get_columns
     ) %>% 
     pull({{ .grid_value_name }})
 }
@@ -289,13 +287,13 @@ value_required_elsewhere_in_tile <- function(x, row_idx, column_idx, value) {
 #' 
 #' @rdname INTERNAL_update_choices
 compute_cell_choices <- function(x, row_idx, column_idx, firstpass) {
-  grid_value <- x %>% 
+  cell_status <- x %>% 
     filter(.data[[.grid_row_name]] == row_idx &
         .data[[.grid_column_name]] == column_idx) %>% 
-    pull({{ .grid_value_name }})
+    pull({{ .grid_status_name }})
   
-  if (identical(length(grid_value), 1L) && !is.na(grid_value)) {
-    return(grid_value)
+  if (cell_status %in% c("initial", "answer")) {
+    return(NULL)
   }
   
   choices <- 1:9
@@ -358,7 +356,9 @@ update_choices_all <- function(x, firstpass) {
         next
       } else {
         choices <- compute_cell_choices(x, row_idx, column_idx, firstpass)
-        x <- update_choices_xy(x, row_idx, column_idx, choices)
+        if (!is.null(choices)) {
+          x <- update_choices_xy(x, row_idx, column_idx, choices)
+        }
       }
     }
   }
