@@ -90,9 +90,15 @@ plot_value.sudoku <- function(x, value, ...) {
   plot.sudoku(x_gg)
 }
 
+#' @param x A `sudoku` object.
+#' @param row_idx Index of the row of the cell being tested.
+#' @param column_idx Index of the column of the cell being tested.
+#' 
 #' @importFrom tibble as_tibble
 #' @importFrom dplyr filter pull
 #' @importFrom rlang .data
+#' 
+#' @rdname get_values
 get_tile_values <- function(x, row_idx, column_idx) {
   # row
   row_tile <- get_tile_index(row_idx)
@@ -106,6 +112,15 @@ get_tile_values <- function(x, row_idx, column_idx) {
         .data[[.grid_row_name]] %in% get_rows &
         .data[[.grid_column_name]] %in% get_columns
     ) %>% 
+    pull({{ .grid_value_name }})
+}
+
+#' @rdname get_values
+get_cell_choices <- function(x, row_idx, column_idx) {
+  x %>% 
+    filter(.data[[.grid_row_name]] == row_idx &
+      .data[[.grid_column_name]] == column_idx &
+      .data[[.grid_status_name]] == "candidate") %>% 
     pull({{ .grid_value_name }})
 }
 

@@ -155,3 +155,11 @@ test_that("plot_choices.sudoku", {
 
   expect_s3_class(out, "ggplot")
 })
+
+test_that("get_cell_choices", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::get_cell_choices(x, 1, 1)
+  
+  expect_identical(out, integer(0))
+})
