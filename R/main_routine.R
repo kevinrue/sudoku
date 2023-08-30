@@ -31,9 +31,7 @@ run_solver <- function(x, max_iter = Inf, do.plot = FALSE, do.message = FALSE) {
         # only cell in tile for this value?
         cell_choices <- get_cell_choices(x, row, column)
         only_cell <- vapply(cell_choices, only_cell_in_tile_for_value, logical(1),
-          x = x,
-          row_idx = row,
-          column_idx = column)
+          x = x, row_idx = row, column_idx = column)
         value <- cell_choices[only_cell]
         if (sum(only_cell) == 1) {
           if (do.message) {
@@ -47,47 +45,35 @@ run_solver <- function(x, max_iter = Inf, do.plot = FALSE, do.message = FALSE) {
           next
         }
         # only cell in column for value?
-        # only_cell <- vapply(cell_choices, only_cell_in_column, logical(1), .choices = sudoku_choices, .row = row, .column = column)
-        # value <- cell_choices[only_cell]
-        # message("== only cell ==")
-        # message("row: ", row, ", column: ", column, ", value: ", value)
-        # if (sum(only_cell) == 1) {
-        #   if (prompt) {
-        #     continue <- prompt_next()
-        #   } else {
-        #     continue <- TRUE
-        #   }
-        #   if (continue) {
-        #     x <- add_value_xy(x, row, column, value, status = "answer")
-        #     print(plot(x))
-        #     Sys.sleep(0.5)
-        #     x <- update_choices_all(x, firstpass)
-        #     next
-        #   } else {
-        #     break
-        #   }
-        # }
+        only_cell <- vapply(cell_choices, only_cell_in_column_for_value, logical(1),
+          x = x, row_idx = row, column_idx = column)
+        value <- cell_choices[only_cell]
+        if (sum(only_cell) == 1) {
+          if (do.message) {
+            message("== only cell ==")
+            message("row: ", row, ", column: ", column, ", value: ", value)
+          }
+          x <- replace_cell_values(x, row, column, value, status = "answer")
+          if (do.plot) print(plot(x))
+          Sys.sleep(0.5)
+          x <- update_choices_all(x, firstpass)
+          next
+        }
         # only cell in row for value?
-        # only_cell <- vapply(cell_choices, only_cell_in_row, logical(1), .choices = sudoku_choices, .row = row, .column = column)
-        # value <- cell_choices[only_cell]
-        # message("== only cell ==")
-        # message("row: ", row, ", column: ", column, ", value: ", value)
-        # if (sum(only_cell) == 1) {
-        #   if (prompt) {
-        #     continue <- prompt_next()
-        #   } else {
-        #     continue <- TRUE
-        #   }
-        #   if (continue) {
-        #     x <- add_value_xy(x, row, column, value, status = "answer")
-        #     print(plot(x))
-        #     Sys.sleep(0.5)
-        #     x <- update_choices_all(x, firstpass)
-        #     next
-        #   } else {
-        #     break
-        #   }
-        # }
+        only_cell <- vapply(cell_choices, only_cell_in_row_for_value, logical(1),
+          x = x, row_idx = row, column_idx = column)
+        value <- cell_choices[only_cell]
+        if (sum(only_cell) == 1) {
+          if (do.message) {
+            message("== only cell ==")
+            message("row: ", row, ", column: ", column, ", value: ", value)
+          }
+          x <- replace_cell_values(x, row, column, value, status = "answer")
+          if (do.plot) print(plot(x))
+          Sys.sleep(0.5)
+          x <- update_choices_all(x, firstpass)
+          next
+        }
       } # for (column in 1:9)
     } # for (row in 1:9)
     new_n_filled <- sum(!is.na(x[[.grid_value_name]]))

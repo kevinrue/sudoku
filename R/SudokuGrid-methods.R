@@ -182,6 +182,24 @@ only_cell_in_tile_for_value <- function(x, row_idx, column_idx, value) {
     cells_in_tile[[.grid_column_name]] == column_idx
 }
 
+only_cell_in_row_for_value <- function(x, row_idx, column_idx, value) {
+  cells_in_row <- x %>% 
+    filter(.data[[.grid_row_name]] == row_idx &
+        .data[[.grid_value_name]] == value)
+  identical(nrow(cells_in_row), 1L) &&
+    cells_in_row[[.grid_row_name]] == row_idx &&
+    cells_in_row[[.grid_column_name]] == column_idx
+}
+
+only_cell_in_column_for_value <- function(x, row_idx, column_idx, value) {
+  cells_in_column <- x %>% 
+    filter(.data[[.grid_column_name]] == column_idx &
+        .data[[.grid_value_name]] == value)
+  identical(nrow(cells_in_column), 1L) &&
+    cells_in_column[[.grid_row_name]] == row_idx &&
+    cells_in_row[[.grid_column_name]] == column_idx
+}
+
 #' @importFrom dplyr filter pull
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble
