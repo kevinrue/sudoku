@@ -194,7 +194,7 @@ test_that("eliminate_competing_choices_xy", {
 test_that("run_solver", {
   x <- simulate_grid()
   
-  out <- sudoku:::run_solver(x, Inf, plot = TRUE, message = TRUE)
+  out <- sudoku:::run_solver(x, max_iter = Inf, do.plot = TRUE, do.message = TRUE)
   
   expect_s3_class(out, "sudoku")
 })
