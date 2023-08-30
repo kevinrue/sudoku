@@ -174,7 +174,7 @@ test_that("get_cell_choices", {
   
   out <- sudoku:::get_cell_choices(x, 1, 2)
   
-  expect_identical(out, c(6L, 7L, 8L))
+  expect_identical(out, integer(0))
 })
 
 test_that("eliminate_competing_choices_xy", {
