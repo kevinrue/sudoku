@@ -26,6 +26,7 @@ replace_cell_values.sudoku <- function(object, i, j, values, status)
 #' @importFrom ggplot2 aes geom_tile geom_text ggplot scale_color_manual theme_void
 #' @importFrom rlang .data
 #' @importFrom tibble as_tibble
+#' @importFrom utils modifyList
 #' 
 #' @rdname plot.sudoku
 #'
@@ -33,14 +34,24 @@ replace_cell_values.sudoku <- function(object, i, j, values, status)
 #' sudoku_grid <- simulate_grid()
 #' plot(sudoku_grid)
 plot.sudoku <- function(x, ...) {
+  # data
+  x_gg <- x %>% 
+    filter(.data[[.grid_status_name]] %in% c("initial", "answer"))
+  # background
+  empty_cells <- as_tibble(expand.grid(grid_row = 1:9, grid_column = 1:9))
+  colnames(empty_cells) <- c(.grid_row_name, .grid_column_name)
+  empty_cells[[.grid_value_name]] <- NA
+  empty_cells[[.grid_status_name]] <- NA
+  # x_gg <- bind_rows(empty_cells, x_gg)
   # tiles
   tile_centers <- expand.grid(grid_row = 2 + 0:2*3, grid_column = 2 + 0:2*3)
   colnames(tile_centers) <- c(.grid_row_name, .grid_column_name)
   # plot
-  ggplot(x, aes(.data[[.grid_column_name]], 10-.data[[.grid_row_name]])) +
-    geom_tile(fill = "white", color = "black", width = 1, height = 1) +
-    geom_tile(aes(10-.data[[.grid_row_name]], .data[[.grid_column_name]]), tile_centers, fill = NA, color = "black", width = 3, height = 3, linewidth = 2) +
-    geom_text(aes(label = .data[[.grid_value_name]], color = .data[[.grid_status_name]]), x %>% filter(!is.na(.data[[.grid_value_name]]))) +
+  aes_xy <- aes(.data[[.grid_column_name]], 10-.data[[.grid_row_name]])
+  ggplot() +
+    geom_tile(aes_xy, empty_cells, fill = "white", color = "black", width = 1, height = 1) +
+    geom_tile(aes_xy, tile_centers, fill = NA, color = "black", width = 3, height = 3, linewidth = 2) +
+    geom_text(modifyList(aes_xy, aes(label = .data[[.grid_value_name]], color = .data[[.grid_status_name]])), x_gg %>% filter(!is.na(.data[[.grid_value_name]]))) +
     theme_void() +
     scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
 }
@@ -48,7 +59,7 @@ plot.sudoku <- function(x, ...) {
 #' @export
 #' @importFrom dplyr across group_by summarise
 #' @importFrom rlang enquo
-plot_choices.sudoku <- function(x) {
+plot_choices.sudoku <- function(x, ...) {
   tile_centers <- expand.grid(row = 2 + 0:2*3, column = 2 + 0:2*3)
   colnames(tile_centers) <- c(.grid_row_name, .grid_column_name)
   x <- x %>%
@@ -76,12 +87,6 @@ plot_value.sudoku <- function(x, value, ...) {
   # data
   x_gg <- x %>% 
     filter(.data[[.grid_value_name]] == value)
-  empty_cells <- as_tibble(expand.grid(grid_row = 1:9, grid_column = 1:9))
-  colnames(empty_cells) <- c(.grid_row_name, .grid_column_name)
-  empty_cells[[.grid_value_name]] <- NA
-  empty_cells[[.grid_status_name]] <- NA
-  x_gg <- bind_rows(empty_cells, x_gg)
-  x_gg <- as_sudoku(x_gg)
   plot.sudoku(x_gg)
 }
 
@@ -292,7 +297,7 @@ compute_cell_choices <- function(x, row_idx, column_idx, firstpass) {
         .data[[.grid_column_name]] == column_idx) %>% 
     pull({{ .grid_status_name }})
   
-  if (cell_status %in% c("initial", "answer")) {
+  if (identical(length(cell_status), 1L) && cell_status %in% c("initial", "answer")) {
     return(NULL)
   }
   

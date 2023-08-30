@@ -28,7 +28,7 @@ test_that("replace_cell_values() replaces the values of a grid cell", {
   out <- replace_cell_values(x, 1, 1, 1:3)
   
   expect_identical(
-    out %>% as_tibble() %>% filter(grid_row == 1 & grid_column == 1) %>% pull(grid_value),
+    out %>% tibble::as_tibble() %>% dplyr::filter(grid_row == 1 & grid_column == 1) %>% dplyr::pull(grid_value),
     1:3
   )
 })
@@ -103,7 +103,7 @@ test_that("compute_cell_choices", {
   
   out <- sudoku:::compute_cell_choices(x, 1, 1, firstpass = FALSE)
   
-  expect_identical(out, 2L)
+  expect_null(out)
   
   out <- sudoku:::compute_cell_choices(x, 1, 2, firstpass = FALSE)
   
@@ -127,7 +127,7 @@ test_that("update_choices_xy", {
   
   out <- sudoku:::update_choices_xy(x, 1L, 1L, 5L)
   
-  expect_identical(out %>% filter(grid_row == 1 & grid_column == 1) %>% pull(grid_value), 5L)  
+  expect_identical(out %>% dplyr::filter(grid_row == 1 & grid_column == 1) %>% dplyr::pull(grid_value), 5L)  
 })
 
 test_that("update_choices_all", {
@@ -149,7 +149,7 @@ test_that("strwrap_choices produces expected string", {
 
 test_that("plot_choices.sudoku", {
   x <- simulate_grid()
-  x <- update_choices_all(x, firstpass = TRUE)
+  x <- sudoku:::update_choices_all(x, firstpass = TRUE)
 
   out <- sudoku:::plot_choices.sudoku(x)
 

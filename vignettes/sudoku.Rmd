@@ -44,12 +44,16 @@ sudoku_grid
 class(sudoku_grid)
 ```
 
-```{r, fig.height=4, fig.width=4, out.height=400px, out.width=400px}
+```{r}
 plot(sudoku_grid)
 ```
 
 ```{r}
 sudoku_grid <- sudoku:::update_choices_all(sudoku_grid, firstpass = TRUE)
-sudoku:::plot_choices.sudoku(sudoku_grid)
+plot_choices(sudoku_grid)
+```
+
+```{r}
+plot_value(sudoku_grid, 1)
 ```
 
