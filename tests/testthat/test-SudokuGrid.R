@@ -167,6 +167,7 @@ test_that("plot_choices.sudoku", {
 
 test_that("get_cell_choices", {
   x <- simulate_grid()
+  x <- update_choices_all(x, firstpass = TRUE)
   
   out <- sudoku:::get_cell_choices(x, 1, 1)
   
@@ -174,7 +175,7 @@ test_that("get_cell_choices", {
   
   out <- sudoku:::get_cell_choices(x, 1, 2)
   
-  expect_identical(out, integer(0))
+  expect_identical(out, c(6L, 7L, 8L))
 })
 
 test_that("eliminate_competing_choices_xy", {
