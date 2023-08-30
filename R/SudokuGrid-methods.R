@@ -53,7 +53,7 @@ plot.sudoku <- function(x, ...) {
     geom_tile(aes_xy, tile_centers, fill = NA, color = "black", width = 3, height = 3, linewidth = 2) +
     geom_text(modifyList(aes_xy, aes(label = .data[[.grid_value_name]], color = .data[[.grid_status_name]])), x_gg %>% filter(!is.na(.data[[.grid_value_name]]))) +
     theme_void() +
-    scale_color_manual(values = c("TRUE" = "black", "FALSE" = "cornflowerblue"))
+    scale_color_manual(values = c("initial" = "black", "candidate" = "grey", "answer" = "cornflowerblue"))
 }
 
 #' @export
@@ -135,6 +135,7 @@ get_cell_choices <- function(x, row_idx, column_idx) {
 #' @importFrom rlang .data
 #' 
 #' @rdname INTERNAL_update_choices
+#' 
 only_cell_in_tile_row_for_value <- function(x, row_idx, column_idx, value) {
   # column
   column_tile <- get_tile_index(column_idx)
@@ -142,7 +143,6 @@ only_cell_in_tile_row_for_value <- function(x, row_idx, column_idx, value) {
   tile_other_columns <- setdiff(tile_columns, column_idx)
   # logic
   x %>% 
-    as_tibble() %>% 
     filter(.data[[.grid_value_name]] == value &
         .data[[.grid_row_name]] == row_idx &
         .data[[.grid_column_name]] %in% tile_other_columns) %>% 
@@ -161,12 +161,25 @@ only_cell_in_tile_column_for_value <- function(x, row_idx, column_idx, value) {
   tile_other_rows <- setdiff(tile_rows, row_idx)
   # logic
   x %>% 
-    as_tibble() %>% 
     filter(.data[[.grid_value_name]] == value &
         .data[[.grid_row_name]] == column_idx &
         .data[[.grid_column_name]] %in% tile_other_rows) %>% 
     nrow() %>% 
     identical(0L)
+}
+
+only_cell_in_tile_for_value <- function(x, row_idx, column_idx, value) {
+  row_tile <- get_tile_index(row_idx)
+  column_tile <- get_tile_index(column_idx)
+  get_rows <- get_tile_indices(row_tile)
+  get_columns <- get_tile_indices(column_tile)
+  cells_in_tile <- x %>% 
+    filter(.data[[.grid_value_name]] == value &
+        .data[[.grid_row_name]] %in% get_rows &
+        .data[[.grid_column_name]] %in% get_columns)
+  identical(nrow(cells_in_tile), 1L) &&
+    cells_in_tile[[.grid_row_name]] == row_idx &&
+    cells_in_tile[[.grid_column_name]] == column_idx
 }
 
 #' @importFrom dplyr filter pull
@@ -387,7 +400,7 @@ update_choices_all <- function(x, firstpass) {
 }
 
 #' @importFrom dplyr distinct inner_join
-test_choices_xy <- function(x, row_idx, column_idx) {
+eliminate_competing_choices_xy <- function(x, row_idx, column_idx) {
   # what are the choices for the current cell?
   cell_choices <- get_cell_choices(x, row_idx, column_idx)
   if (identical(cell_choices, integer(0))) {

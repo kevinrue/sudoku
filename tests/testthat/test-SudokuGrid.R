@@ -57,6 +57,15 @@ test_that("only_cell_in_tile_column_for_value() return TRUE/FALSE when expected"
   expect_true(out)
 })
 
+test_that("only_cell_in_tile_for_value", {
+  x <- simulate_grid()
+  x <- sudoku:::update_choices_all(x, firstpass = TRUE)
+  
+  out <- sudoku:::only_cell_in_tile_for_value(x, 6, 8, 3)
+  
+  expect_true(out)
+})
+
 test_that("which_other_tile_rows_for_value returns the expected indices", {
   x <- simulate_grid()
   
@@ -168,15 +177,23 @@ test_that("get_cell_choices", {
   expect_identical(out, c(6L, 7L, 8L))
 })
 
-test_that("test_choices_xy", {
+test_that("eliminate_competing_choices_xy", {
   x <- simulate_grid()
   x <- sudoku:::update_choices_all(x, firstpass = TRUE)
   
-  out <- sudoku:::test_choices_xy(x, 1, 2)
+  out <- sudoku:::eliminate_competing_choices_xy(x, 1, 2)
   
   expect_identical(out, integer(0))
   
-  out <- sudoku:::test_choices_xy(x, 6, 8)
+  out <- sudoku:::eliminate_competing_choices_xy(x, 6, 8)
   
   expect_identical(out, c(3L))
+})
+
+test_that("run_solver", {
+  x <- simulate_grid()
+  
+  out <- sudoku:::run_solver(x, Inf, plot = TRUE, message = TRUE)
+  
+  expect_s3_class(out, "sudoku")
 })
