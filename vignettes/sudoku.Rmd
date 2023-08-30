@@ -56,4 +56,3 @@ plot_choices(sudoku_grid)
 ```{r}
 plot_value(sudoku_grid, 1)
 ```
-

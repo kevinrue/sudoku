@@ -385,3 +385,40 @@ update_choices_all <- function(x, firstpass) {
   x %>% 
     arrange({{ .grid_row_name }}, {{ .grid_column_name }})
 }
+
+#' @importFrom dplyr distinct inner_join
+test_choices_xy <- function(x, row_idx, column_idx) {
+  # what are the choices for the current cell?
+  cell_choices <- get_cell_choices(x, row_idx, column_idx)
+  if (identical(cell_choices, integer(0))) {
+    return(cell_choices)
+  }
+  # what are the choices for every other cell in the tile?
+  tile_row_index <- get_tile_index(row_idx)
+  tile_column_index <- get_tile_index(column_idx)
+  tile_row_indices <- get_tile_indices(tile_row_index)
+  tile_column_indices <- get_tile_indices(tile_column_index)
+  tile_cells <- expand.grid(
+    grid_row = tile_row_indices,
+    grid_column = tile_column_indices)
+  colnames(tile_cells) <- c(.grid_row_name, .grid_column_name)
+  competing_cells <- tile_cells %>% 
+    as_tibble() %>% 
+    bind_rows(tibble(
+      "{ .grid_row_name }" := as.integer(row_idx),
+      "{ .grid_column_name }" := 1:9)) %>% 
+    bind_rows(tibble(
+      "{ .grid_row_name }" := 1:9,
+      "{ .grid_column_name }" := as.integer(column_idx))) %>% 
+    filter(!(.data[[.grid_row_name]] == row_idx &
+        .data[[.grid_column_name]] == column_idx)) %>% 
+    distinct(across(c({{ .grid_row_name }}, {{ .grid_column_name }}))) %>% 
+    arrange(across(c({{ .grid_row_name }}, {{ .grid_column_name }})))
+  other_cell_choices <- competing_cells %>% 
+    inner_join(
+      x,
+      c(.grid_row_name, .grid_column_name)) %>% 
+    pull({{ .grid_value_name }}) %>% 
+    unique()
+  cell_choices[!cell_choices %in% other_cell_choices]
+}
