@@ -1,5 +1,5 @@
-run_solver <- function(x, max_iter = Inf, plot = FALSE, message = FALSE) {
-  print(plot(x))
+run_solver <- function(x, max_iter = Inf, do.plot = FALSE, do.message = FALSE) {
+  if (do.plot) print(plot(x))
   firstpass <- TRUE
   n_filled <- sum(!is.na(x[[.grid_value_name]]))
   while(any(is.na(x[[.grid_value_name]])) & max_iter > 0) {
@@ -10,7 +10,6 @@ run_solver <- function(x, max_iter = Inf, plot = FALSE, message = FALSE) {
     for (row in 1:9) {
       if (identical(max_iter, 0L)) break
       for (column in 1:9) {
-        # interrupt if signal is toggled
         if (identical(max_iter, 0L)) break
         if (any(x %>% filter(.data[[.grid_row_name]] == row &
             .data[[.grid_column_name]] == column) %>% pull({{ .grid_status_name }}) != "candidate")) {
@@ -18,20 +17,16 @@ run_solver <- function(x, max_iter = Inf, plot = FALSE, message = FALSE) {
         }
         # eliminate choices from 1:9
         remaining_choices <- eliminate_competing_choices_xy(x, row, column)
-        if (message) {
-          message("== remaining choices ==")
-          message("row: ", row, ", column: ", column, ", only_choice: ", remaining_choices)
-        }
         if (length(remaining_choices) == 1) {
-          if (max_iter > 0) {
-            x <- replace_cell_values(x, row, column, remaining_choices, status = "answer")
-            print(plot(x))
-            Sys.sleep(0.5)
-            x <- update_choices_all(x, firstpass)
-            next
-          } else {
-            break
+          if (do.message) {
+            message("== remaining choices ==")
+            message("row: ", row, ", column: ", column, ", only_choice: ", remaining_choices)
           }
+          x <- replace_cell_values(x, row, column, remaining_choices, status = "answer")
+          if (do.plot) print(plot(x))
+          Sys.sleep(0.5)
+          x <- update_choices_all(x, firstpass)
+          next
         }
         # only cell in tile for this value?
         cell_choices <- get_cell_choices(x, row, column)
@@ -40,18 +35,16 @@ run_solver <- function(x, max_iter = Inf, plot = FALSE, message = FALSE) {
           row_idx = row,
           column_idx = column)
         value <- cell_choices[only_cell]
-        message("== only cell in tile ==")
-        message("row: ", row, ", column: ", column, ", value: ", value)
         if (sum(only_cell) == 1) {
-          if (max_iter > 0) {
-            x <- replace_cell_values(x, row, column, value, status = "answer")
-            print(plot(x))
-            Sys.sleep(0.5)
-            x <- update_choices_all(x, firstpass)
-            next
-          } else {
-            break
+          if (do.message) {
+            message("== only cell in tile ==")
+            message("row: ", row, ", column: ", column, ", value: ", value)
           }
+          x <- replace_cell_values(x, row, column, value, status = "answer")
+          if (do.plot) print(plot(x))
+          Sys.sleep(0.5)
+          x <- update_choices_all(x, firstpass)
+          next
         }
         # only cell in column for value?
         # only_cell <- vapply(cell_choices, only_cell_in_column, logical(1), .choices = sudoku_choices, .row = row, .column = column)
@@ -109,6 +102,6 @@ run_solver <- function(x, max_iter = Inf, plot = FALSE, message = FALSE) {
   if (all(x[[.grid_status_name]] %in% c("initial", "answer"))) {
     message("Grid completed!")
   }
-  plot(x)
+  if (do.plot) print(plot(x))
   return(x)
 }
