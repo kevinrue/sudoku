@@ -56,3 +56,9 @@ plot_choices(sudoku_grid)
 ```{r}
 plot_value(sudoku_grid, 1)
 ```
+
+```{r}
+out <- sudoku:::run_solver(sudoku_grid, max_iter = Inf)
+plot(out)
+```
+

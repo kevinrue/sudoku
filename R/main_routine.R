@@ -1,18 +1,18 @@
 run_solver <- function(x, max_iter = Inf, do.plot = FALSE, do.message = FALSE, do.prompt = FALSE) {
   if (do.plot) print(plot(x))
-  firstpass <- TRUE
-  n_filled <- sum(!is.na(x[[.grid_value_name]]))
-  while(any(is.na(x[[.grid_value_name]])) & max_iter > 0) {
-    if (firstpass) {
-      x <- update_choices_all(x, firstpass)
-      firstpass <- FALSE
-    }
+  x <- update_choices_all(x, TRUE)
+  n_to_fill <- n_cells_to_fill(x)
+  if (do.message) {
+    message(sprintf("* Missing values left: %s", n_to_fill))
+  }
+  while(n_to_fill > 0 & max_iter > 0) {
+    x <- update_choices_all(x, FALSE)
     for (row in 1:9) {
       if (identical(as.integer(max_iter), 0L)) break
       for (column in 1:9) {
         if (identical(as.integer(max_iter), 0L)) break
-        if (any(x %>% filter(.data[[.grid_row_name]] == row &
-            .data[[.grid_column_name]] == column) %>% pull({{ .grid_status_name }}) != "candidate")) {
+        if (!all(x %>% filter(.data[[.grid_row_name]] == row &
+            .data[[.grid_column_name]] == column) %>% pull({{ .grid_status_name }}) == "candidate")) {
           next
         }
         # eliminate choices from 1:9
@@ -27,7 +27,7 @@ run_solver <- function(x, max_iter = Inf, do.plot = FALSE, do.message = FALSE, d
           max_iter <- max_iter - 1
           if (do.plot) print(plot(x))
           Sys.sleep(0.5)
-          x <- update_choices_all(x, firstpass)
+          x <- update_choices_all(x, FALSE)
           next
         }
         # only cell in tile for this value?
@@ -45,7 +45,7 @@ run_solver <- function(x, max_iter = Inf, do.plot = FALSE, do.message = FALSE, d
           max_iter <- max_iter - 1
           if (do.plot) print(plot(x))
           Sys.sleep(0.5)
-          x <- update_choices_all(x, firstpass)
+          x <- update_choices_all(x, FALSE)
           next
         }
         # only cell in column for value?
@@ -62,7 +62,7 @@ run_solver <- function(x, max_iter = Inf, do.plot = FALSE, do.message = FALSE, d
           max_iter <- max_iter - 1
           if (do.plot) print(plot(x))
           Sys.sleep(0.5)
-          x <- update_choices_all(x, firstpass)
+          x <- update_choices_all(x, FALSE)
           next
         }
         # only cell in row for value?
@@ -79,18 +79,22 @@ run_solver <- function(x, max_iter = Inf, do.plot = FALSE, do.message = FALSE, d
           max_iter <- max_iter - 1
           if (do.plot) print(plot(x))
           Sys.sleep(0.5)
-          x <- update_choices_all(x, firstpass)
+          x <- update_choices_all(x, FALSE)
           next
         }
       } # for (column in 1:9)
     } # for (row in 1:9)
-    new_n_filled <- sum(!is.na(x[[.grid_value_name]]))
-    if (max_iter > 0 && identical(new_n_filled, n_filled)) {
+    new_n_to_fill <- n_cells_to_fill(x)
+    if (max_iter > 0 && identical(new_n_to_fill, n_to_fill)) {
       message("No progress in last round. No point trying again.")
-      max_iter <- 0 # redundant
+      max_iter <- 0 # redundant with break
       break
     }
-    n_filled <- new_n_filled
+    n_to_fill <- new_n_to_fill
+    if (do.message) {
+      message(sprintf("* Iterations left: %s", max_iter))
+      message(sprintf("* Missing values left: %s", n_to_fill))
+    }
   }
   if (all(x[[.grid_status_name]] %in% c("initial", "answer"))) {
     message("Grid completed!")

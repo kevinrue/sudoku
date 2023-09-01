@@ -197,7 +197,7 @@ only_cell_in_column_for_value <- function(x, row_idx, column_idx, value) {
         .data[[.grid_value_name]] == value)
   identical(nrow(cells_in_column), 1L) &&
     cells_in_column[[.grid_row_name]] == row_idx &&
-    cells_in_row[[.grid_column_name]] == column_idx
+    cells_in_column[[.grid_column_name]] == column_idx
 }
 
 #' @importFrom dplyr filter pull
@@ -326,7 +326,7 @@ value_required_in_other_tile_column <- function(x, row_idx, column_idx, value) {
 #' @rdname INTERNAL_update_choices
 value_required_elsewhere_in_tile <- function(x, row_idx, column_idx, value) {
   return(
-    value_required_in_other_tile_column(x, row_idx, column_idx, value) ||
+    value_required_in_other_tile_row(x, row_idx, column_idx, value) ||
     value_required_in_other_tile_column(x, row_idx, column_idx, value)
   )
 }
@@ -401,9 +401,11 @@ update_choices_all <- function(x, firstpass) {
   for (row_idx in 1:9) {
     for (column_idx in 1:9) {
       sudoku_grid_value <- x %>% 
-        filter(.data[[.grid_row_name]] == row_idx & .data[[.grid_column_name]] == column_idx) %>% 
+        filter(.data[[.grid_row_name]] == row_idx &
+            .data[[.grid_column_name]] == column_idx) %>% 
         pull({{ .grid_value_name }})
-      if (identical(length(sudoku_grid_value), 1L) && !is.na(sudoku_grid_value)) {
+      if (identical(length(sudoku_grid_value), 1L) &&
+          !is.na(sudoku_grid_value)) {
         next
       } else {
         choices <- compute_cell_choices(x, row_idx, column_idx, firstpass)

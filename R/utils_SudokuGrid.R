@@ -17,3 +17,12 @@ get_tile_index <- function(index) {
 get_tile_indices <- function(index) {
   as.integer(1:3 + (index-1)*3)
 }
+
+n_cells_to_fill <- function(x) {
+  x %>% group_by(
+    grid_row, grid_column) %>%
+    summarise(status = unique(status)) %>%
+    filter(status == "candidate") %>%
+    ungroup() %>%
+    summarise(n=n())
+}
